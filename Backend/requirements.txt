@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+httpx
+reportlab
+sqlalchemy
+psycopg2-binary
+google-generativeai
