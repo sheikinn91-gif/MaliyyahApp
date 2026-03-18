@@ -14,6 +14,7 @@ import Dashboard from "./Pages/Dashboard/Dashboard";
 import History from "./Pages/History/History";
 import Zakat from "./Pages/Zakat/Zakat";
 import Profile from "./Pages/Profile/Profile";
+import ForgotPassword from "./Pages/ForgotPassword/ForgotPassword";
 
 // Import Komponen Keselamatan
 import { ProtectedRoute } from "./Auth/ProtectedRoute";
@@ -113,8 +114,7 @@ function App() {
           }
         />
 
-        {/* Jika URL tidak wujud, hantar ke Dashboard */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </BrowserRouter>
   );

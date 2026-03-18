@@ -115,6 +115,8 @@ const Dashboard = () => {
       });
 
       if (res.ok) {
+        // --- TAMBAH BARIS INI ---
+        resetZakatResults(); // Ini yang akan tukar Banner Hijau jadi RM 0
         toast.success("Rekod dipadam!");
         refreshData();
       }
@@ -167,6 +169,7 @@ const Dashboard = () => {
       bg: "bg-yellow-50",
     },
   ];
+  const { resetZakatResults } = useZakat();
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-6 pt-6 bg-slate-50/30">

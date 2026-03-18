@@ -2,10 +2,11 @@ import React, {
   createContext,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
 
-// 1. Interface untuk keputusan zakat
+// 1. Interface Definisi
 interface ZakatResults {
   pendapatan: number;
   kripto: number;
@@ -13,7 +14,6 @@ interface ZakatResults {
   logam: number;
 }
 
-// 2. Interface untuk data pengguna (digunakan dalam login)
 interface UserData {
   name: string;
   location: string;
@@ -22,8 +22,8 @@ interface UserData {
   birthYear?: string;
   monthlyIncome?: number;
   zakat_pendapatan?: number;
-  zakat_logam?: number; // Ditambah untuk menyokong nilai emas/logam
-  zakat_harta?: number; // Ditambah untuk menyokong nilai harta lain
+  zakat_logam?: number;
+  zakat_harta?: number;
   zakat_kripto?: number;
 }
 
@@ -38,7 +38,6 @@ interface ZakatContextType {
   isModalOpen: boolean;
   zakatResults: ZakatResults;
   isPrivacyMode: boolean;
-
   setUserName: (name: string) => void;
   setUserEmail: (email: string) => void;
   setLocation: (loc: string) => void;
@@ -50,61 +49,115 @@ interface ZakatContextType {
   setZakatResults: (results: ZakatResults) => void;
   openPaymentModal: (results: ZakatResults) => void;
   togglePrivacyMode: () => void;
-  login: (userData: UserData) => void; // Menggunakan interface UserData
+  login: (userData: UserData) => void;
   logout: () => void;
+  resetZakatResults: () => void;
 }
 
 const ZakatContext = createContext<ZakatContextType | undefined>(undefined);
 
 export const ZakatProvider = ({ children }: { children: ReactNode }) => {
-  // State Profil Pengguna
-  const [userName, setUserName] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [location, setLocation] = useState<string>("");
-  const [occupation, setOccupation] = useState<string>("");
-  const [birthYear, setBirthYear] = useState<string>("1990");
-  const [monthlyIncome, setMonthlyIncome] = useState<number>(0);
+  const getInitialUser = () => {
+    if (typeof window === "undefined") return null;
+    const saved = localStorage.getItem("maliyyah_user");
+    if (!saved) return null;
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
+  };
 
-  // State Status & UI
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const initialUser = getInitialUser();
+
+  const [userName, setUserName] = useState<string>(
+    initialUser?.name || "Pengguna",
+  );
+  const [userEmail, setUserEmail] = useState<string>(initialUser?.email || "");
+  const [location, setLocation] = useState<string>(initialUser?.location || "");
+  const [occupation, setOccupation] = useState<string>(
+    initialUser?.occupation || "",
+  );
+  const [birthYear, setBirthYear] = useState<string>(
+    initialUser?.birthYear || "1990",
+  );
+  const [monthlyIncome, setMonthlyIncome] = useState<number>(
+    initialUser?.monthlyIncome || 0,
+  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    typeof window !== "undefined"
+      ? !!localStorage.getItem("maliyyah_token")
+      : false,
+  );
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isPrivacyMode, setIsPrivacyMode] = useState<boolean>(false);
 
-  // State Keputusan Zakat (Ini yang akan dibaca oleh Dashboard)
   const [zakatResults, setZakatResults] = useState<ZakatResults>({
-    pendapatan: 0,
-    kripto: 0,
-    harta: 0,
-    logam: 0,
+    pendapatan: initialUser?.zakat_pendapatan || 0,
+    kripto: initialUser?.zakat_kripto || 0,
+    harta: initialUser?.zakat_harta || 0,
+    logam: initialUser?.zakat_logam || 0,
   });
+
+  useEffect(() => {
+    const user = getInitialUser();
+    if (user) {
+      setUserName(user.name || "Pengguna");
+      setUserEmail(user.email || "");
+      setLocation(user.location || "");
+      setOccupation(user.occupation || "");
+      setBirthYear(user.birthYear || "1990");
+      setMonthlyIncome(user.monthlyIncome || 0);
+      setZakatResults({
+        pendapatan: user.zakat_pendapatan || 0,
+        kripto: user.zakat_kripto || 0,
+        harta: user.zakat_harta || 0,
+        logam: user.zakat_logam || 0,
+      });
+    }
+  }, []);
+
+  // --- FUNGSI RESET YANG BETUL ---
+  const resetZakatResults = () => {
+    // 1. Reset UI (Banner & Kad jadi 0)
+    setZakatResults({ pendapatan: 0, kripto: 0, harta: 0, logam: 0 });
+
+    // 2. Reset LocalStorage
+    const saved = localStorage.getItem("maliyyah_user");
+    if (saved) {
+      const user = JSON.parse(saved);
+      const updatedUser = {
+        ...user,
+        zakat_pendapatan: 0,
+        zakat_kripto: 0,
+        zakat_harta: 0,
+        zakat_logam: 0,
+      };
+      localStorage.setItem("maliyyah_user", JSON.stringify(updatedUser));
+    }
+  };
 
   const openPaymentModal = (results: ZakatResults) => {
     setZakatResults(results);
     setIsModalOpen(true);
   };
 
-  const togglePrivacyMode = () => {
-    setIsPrivacyMode((prev) => !prev);
-  };
+  const togglePrivacyMode = () => setIsPrivacyMode((prev) => !prev);
 
   const login = (userData: UserData) => {
-    // Simpan data profil
     setUserName(userData.name || "");
+    setUserEmail(userData.email || "");
     setLocation(userData.location || "");
     setOccupation(userData.occupation || "");
     setBirthYear(userData.birthYear || "1990");
     setMonthlyIncome(userData.monthlyIncome || 0);
-
-    if (userData.email) setUserEmail(userData.email);
-
-    // KEMASKINI: Simpan nilai logam dan harta ke dalam state zakatResults
+    localStorage.setItem("maliyyah_user", JSON.stringify(userData));
     setZakatResults({
       pendapatan: userData.zakat_pendapatan || 0,
       kripto: userData.zakat_kripto || 0,
       harta: userData.zakat_harta || 0,
       logam: userData.zakat_logam || 0,
     });
-
     setIsAuthenticated(true);
   };
 
@@ -113,12 +166,9 @@ export const ZakatProvider = ({ children }: { children: ReactNode }) => {
     setUserEmail("");
     setLocation("");
     setOccupation("");
-    setBirthYear("1990");
     setMonthlyIncome(0);
-    setIsAuthenticated(false);
-    setIsPrivacyMode(false);
     setZakatResults({ pendapatan: 0, kripto: 0, harta: 0, logam: 0 });
-
+    setIsAuthenticated(false);
     localStorage.removeItem("maliyyah_token");
     localStorage.removeItem("maliyyah_user");
   };
@@ -149,6 +199,7 @@ export const ZakatProvider = ({ children }: { children: ReactNode }) => {
         togglePrivacyMode,
         login,
         logout,
+        resetZakatResults,
       }}
     >
       {children}
@@ -158,8 +209,7 @@ export const ZakatProvider = ({ children }: { children: ReactNode }) => {
 
 export const useZakat = () => {
   const context = useContext(ZakatContext);
-  if (!context) {
+  if (!context)
     throw new Error("useZakat mesti digunakan di dalam ZakatProvider");
-  }
   return context;
 };

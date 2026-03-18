@@ -20,7 +20,6 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Validasi Input
     if (!username || !password) {
       toast.error("Sila masukkan nama pengguna dan kata laluan.");
       return;
@@ -43,28 +42,33 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // 2. Simpan JWT Token ke dalam localStorage
         if (data.access_token) {
           localStorage.setItem("maliyyah_token", data.access_token);
         }
 
-        // 3. Kemaskini Context dengan data spesifik kategori
-        // Mapping ini memastikan nilai masuk ke kad yang betul di Dashboard
+        localStorage.setItem(
+          "maliyyah_user",
+          JSON.stringify({
+            username: data.user.name,
+            email: data.user.email,
+            location: data.user.location,
+            occupation: data.user.occupation,
+          }),
+        );
+
         login({
           name: data.user.name,
           occupation: data.user.occupation,
           location: data.user.location,
           email: data.user.email,
           birthYear: data.user.birth_year,
-          monthlyIncome: data.user.zakat_pendapatan || 0, // Nilai Zakat Pendapatan
-          zakat_kripto: data.user.zakat_kripto || 0, // Nilai Zakat Kripto
-          zakat_harta: data.user.zakat_harta || 0, // Nilai Zakat Harta
-          zakat_logam: data.user.zakat_logam || 0, // Nilai Zakat Logam
+          monthlyIncome: data.user.zakat_pendapatan || 0,
+          zakat_kripto: data.user.zakat_kripto || 0,
+          zakat_harta: data.user.zakat_harta || 0,
+          zakat_logam: data.user.zakat_logam || 0,
         });
 
         toast.success(`Selamat kembali, ${data.user.name}!`);
-
-        // 4. Alihkan ke Dashboard
         navigate("/");
       } else {
         toast.error(data.detail || "Log masuk gagal. Sila cuba lagi.");
@@ -100,7 +104,6 @@ export default function LoginPage() {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Input Nama Pengguna */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                   <User className="h-4 w-4 text-slate-400" /> Nama Pengguna
@@ -115,12 +118,18 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Input Kata Laluan dengan Toggle Visibility */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                     <Lock className="h-4 w-4 text-slate-400" /> Kata Laluan
                   </label>
+                  {/* PAUTAN LUPA KATA LALUAN DI ATAS INPUT (GAYA MODEN) */}
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors"
+                  >
+                    Lupa Kata Laluan?
+                  </Link>
                 </div>
                 <div className="relative">
                   <Input
@@ -160,7 +169,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-8 space-y-4 text-center border-t pt-6">
+            <div className="mt-8 text-center border-t pt-6">
               <p className="text-sm text-slate-600">
                 Belum mempunyai akaun?{" "}
                 <Link
@@ -168,16 +177,6 @@ export default function LoginPage() {
                   className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors"
                 >
                   Daftar di sini
-                </Link>
-              </p>
-
-              <p className="text-sm text-slate-600">
-                Lupa Kata Laluan?{" "}
-                <Link
-                  to="/forgot-password"
-                  className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors"
-                >
-                  Klik di sini
                 </Link>
               </p>
             </div>

@@ -5,6 +5,7 @@ import {
   UserCircle,
   Eye,
   EyeOff,
+  LogIn,
 } from "lucide-react";
 import { useZakat } from "@/components/Context/ZakatContext";
 import {
@@ -33,7 +34,7 @@ const mainMenuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
-  const { isPrivacyMode, togglePrivacyMode } = useZakat();
+  const { isPrivacyMode, togglePrivacyMode, isAuthenticated } = useZakat();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-slate-200">
@@ -130,7 +131,29 @@ export function AppSidebar() {
 
       {/* --- SIDEBAR FOOTER --- */}
       <SidebarFooter className="border-t border-slate-100 p-2">
-        <NavUser />
+        {isAuthenticated ? (
+          /* JIKA SUDAH LOGIN: Paparkan profil pengguna (NavUser) */
+          <NavUser />
+        ) : (
+          /* JIKA BELUM LOGIN: Paparkan butang Log Masuk yang jelas */
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white transition-all duration-200 shadow-sm"
+                tooltip="Log Masuk"
+              >
+                <Link
+                  to="/login"
+                  className="flex items-center gap-3 w-full px-3 py-2"
+                >
+                  <LogIn className="size-5" />
+                  <span className="font-bold">Log Masuk</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

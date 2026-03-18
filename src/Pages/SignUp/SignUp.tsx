@@ -34,6 +34,7 @@ function SignUp() {
     setUserEmail,
     setLocation,
     setOccupation: setCtxOccupation,
+    setIsAuthenticated,
   } = useZakat();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -88,16 +89,32 @@ function SignUp() {
       const data = await response.json();
 
       if (response.ok) {
+        // --- LOGIK PENTING: KEMASKINI STATE & STORAGE ---
+
+        // 1. Simpan ke Context supaya UI berubah serta-merta
         setUserName(formName);
         setUserEmail(email);
         if (setLocation) setLocation(userLocation);
         if (setCtxOccupation) setCtxOccupation(occupation);
+        setIsAuthenticated(true);
+
+        // 2. Simpan ke LocalStorage supaya data tidak hilang jika refresh/pindah page
+        localStorage.setItem(
+          "maliyyah_user",
+          JSON.stringify({
+            username: formName,
+            email: email,
+            location: userLocation,
+            occupation: occupation,
+          }),
+        );
 
         toast.success(`Akaun Berjaya Dicipta!`, {
-          description: `Selamat datang ke Maliyyah, ${formName}. Sila log masuk.`,
+          description: `Selamat datang ke Maliyyah, ${formName}.`,
         });
 
-        navigate("/login");
+        // Beralih terus ke Dashboard
+        navigate("/");
       } else {
         toast.error(data.detail || "Pendaftaran gagal. Sila cuba lagi.");
       }
@@ -143,7 +160,6 @@ function SignUp() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp} className="space-y-4">
-            {/* Nama Pengguna */}
             <div className="space-y-1">
               <Label htmlFor="userName">Nama Pengguna</Label>
               <Input
@@ -151,16 +167,15 @@ function SignUp() {
                 className={`rounded-xl h-11 ${errors.userName ? "border-red-500" : ""}`}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="cth: amir_dev"
+                placeholder="cth: sheikin"
               />
               {errors.userName && (
-                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-tighter">
+                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">
                   {errors.userName}
                 </p>
               )}
             </div>
 
-            {/* Email */}
             <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -169,18 +184,16 @@ function SignUp() {
                 className={`rounded-xl h-11 ${errors.email ? "border-red-500" : ""}`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="amir@example.com"
+                placeholder="sheikin@example.com"
               />
               {errors.email && (
-                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-tighter">
+                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">
                   {errors.email}
                 </p>
               )}
             </div>
 
-            {/* Password Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Password Field */}
               <div className="space-y-1">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -202,7 +215,6 @@ function SignUp() {
                 </div>
               </div>
 
-              {/* Confirm Password Field */}
               <div className="space-y-1">
                 <Label htmlFor="confirm">Sahkan Kata Laluan</Label>
                 <Input
@@ -216,13 +228,6 @@ function SignUp() {
               </div>
             </div>
 
-            {(errors.password || errors.confirmPassword) && (
-              <p className="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-tighter">
-                {errors.password || errors.confirmPassword}
-              </p>
-            )}
-
-            {/* Pekerjaan */}
             <div className="space-y-1">
               <Label htmlFor="occupation" className="flex items-center gap-2">
                 <Briefcase size={14} /> Pekerjaan
@@ -232,16 +237,15 @@ function SignUp() {
                 className={`rounded-xl h-11 ${errors.occupation ? "border-red-500" : ""}`}
                 value={occupation}
                 onChange={(e) => setOccupation(e.target.value)}
-                placeholder="cth: Software Developer"
+                placeholder="cth: Pengurus"
               />
               {errors.occupation && (
-                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-tighter">
+                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">
                   {errors.occupation}
                 </p>
               )}
             </div>
 
-            {/* Daerah */}
             <div className="space-y-1">
               <Label className="flex items-center gap-2">
                 <MapPin size={14} /> Daerah di Sabah
@@ -260,17 +264,12 @@ function SignUp() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.location && (
-                <p className="text-[10px] text-red-500 font-bold ml-1 uppercase tracking-tighter">
-                  {errors.location}
-                </p>
-              )}
             </div>
 
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 py-6 text-lg font-bold rounded-xl shadow-lg shadow-emerald-100 mt-4 transition-all active:scale-95"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 py-6 text-lg font-bold rounded-xl mt-4"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -285,9 +284,9 @@ function SignUp() {
               Dah ada akaun?{" "}
               <Link
                 to="/login"
-                className="text-emerald-600 font-bold hover:underline transition-colors"
+                className="text-emerald-600 font-bold hover:underline"
               >
-                Log Masuk Sekarang
+                Log Masuk
               </Link>
             </p>
           </form>

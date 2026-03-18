@@ -18,11 +18,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, KeyRound, ArrowLeft } from "lucide-react";
+import { Loader2, KeyRound, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  // State untuk tunjuk/sembunyi kata laluan
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -43,7 +47,6 @@ export default function ForgotPassword() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi Ringkas
     if (formData.new_password !== formData.confirm_password) {
       toast.error("Kata laluan tidak padan!");
       return;
@@ -84,7 +87,7 @@ export default function ForgotPassword() {
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
             <KeyRound className="h-6 w-6 text-orange-600" />
           </div>
-          <CardTitle className="text-2xl font-bold text-slate-900 text-emerald-600">
+          <CardTitle className="text-2xl font-bold text-emerald-600">
             Lupa Kata Laluan?
           </CardTitle>
           <CardDescription>
@@ -128,24 +131,51 @@ export default function ForgotPassword() {
 
             <div className="space-y-1">
               <Label>Kata Laluan Baru</Label>
-              <Input
-                type="password"
-                onChange={(e) =>
-                  setFormData({ ...formData, new_password: e.target.value })
-                }
-                required
-              />
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  className="pr-10"
+                  onChange={(e) =>
+                    setFormData({ ...formData, new_password: e.target.value })
+                  }
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors"
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-1">
               <Label>Sahkan Kata Laluan</Label>
-              <Input
-                type="password"
-                onChange={(e) =>
-                  setFormData({ ...formData, confirm_password: e.target.value })
-                }
-                required
-              />
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  className="pr-10"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirm_password: e.target.value,
+                    })
+                  }
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
             </div>
 
             <Button

@@ -35,7 +35,7 @@ export function NavUser() {
 
   const displayUser = {
     name: userName || "Pengguna",
-    email: userEmail || "user@maliyyah.com",
+    email: userEmail || "  ",
     avatar: "https://github.com/shadcn.png", // Anda boleh gantikan dengan URL imej sebenar
   };
 
@@ -99,25 +99,6 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
-
-            <DropdownMenuSeparator className="bg-slate-100" />
-
-            <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer py-2 focus:bg-slate-50">
-                <BadgeCheck className="mr-2 h-4 w-4 text-emerald-600" />
-                Akaun Profil
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2 focus:bg-slate-50">
-                <Settings className="mr-2 h-4 w-4 text-slate-500" />
-                Tetapan
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2 focus:bg-slate-50">
-                <Bell className="mr-2 h-4 w-4 text-slate-500" />
-                Notifikasi
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-
-            <DropdownMenuSeparator className="bg-slate-100" />
 
             <DropdownMenuItem
               className="cursor-pointer py-2 text-red-600 focus:text-white focus:bg-red-500 rounded-md transition-colors"
