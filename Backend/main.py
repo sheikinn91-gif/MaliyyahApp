@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# 1. WAJIB: Panggil load_dotenv paling atas supaya os.getenv berfungsi
+load_dotenv()
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,14 +13,26 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 import google.generativeai as genai
-from dotenv import load_dotenv # Pastikan ini juga ada jika guna .env
 
 # ==========================================
-# 1. KONFIGURASI DATABASE (PostgreSQL)
+# 1. KONFIGURASI DATABASE (PostgreSQL & SQLite Fallback)
 # ==========================================
-DATABASE_URL = "sqlite:///./maliyyah.db"
+# Mengambil URL dari Environment Variable Render
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+# Render biasanya memberikan URL bermula 'postgres://'
+# SQLAlchemy versi terbaru memerlukan 'postgresql://'
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Jika tiada DATABASE_URL (seperti di komputer sendiri), guna SQLite
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///./maliyyah.db"
+
+# Fix untuk SQLite (check_same_thread) jika perlu
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -76,16 +92,16 @@ app = FastAPI(title="Maliyyah API - Sabah Region")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Benarkan akses dari mana-mana origin (Frontend Vite)
+    allow_origins=["*"],  # Membenarkan akses dari Vercel/Mana-mana origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Konfigurasi AI Gemini
-load_dotenv()
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_KEY) # type: ignore
+if GEMINI_KEY:
+    genai.configure(api_key=GEMINI_KEY) # type: ignore
 
 # Dependency untuk sesi database
 def get_db():
@@ -101,7 +117,7 @@ def get_db():
 
 @app.get("/")
 def read_root():
-    return {"status": "Maliyyah API Aktif", "region": "Sabah, Malaysia"}
+    return {"status": "Maliyyah API Aktif", "region": "Sabah, Malaysia", "db_engine": engine.name}
 
 # --- AUTHENTICATION ---
 
@@ -138,7 +154,6 @@ async def signup(req: SignupRequest, db: Session = Depends(get_db)):
 # --- MARKET DATA ---
 @app.get("/api/live-market")
 async def get_live_market():
-    # Data statik sebagai fallback (boleh diganti dengan API real-time nanti)
     return {"btc": 295000.0, "gold_gram": 385.50, "silver_gram": 4.60}
 
 # --- ZAKAT CORE LOGIC ---
@@ -147,8 +162,6 @@ async def get_live_market():
 async def calculate_zakat(req: CalculateRequest, db: Session = Depends(get_db)):
     try:
         zakat_val = round(req.total_zakat, 2)
-        
-        # Logik penentuan kategori secara dinamik
         kat = "Zakat Harta"
         if req.pendapatan > 0: kat = "Pendapatan"
         elif req.kripto > 0: kat = "Kripto"
@@ -172,13 +185,10 @@ async def calculate_zakat(req: CalculateRequest, db: Session = Depends(get_db)):
 
 @app.get("/api/zakat-summary")
 async def get_summary(db: Session = Depends(get_db)):
-    # Kira jumlah mengikut kategori spesifik
     pendapatan = db.query(func.sum(ZakatHistory.total_zakat)).filter(ZakatHistory.kategori == "Pendapatan").scalar() or 0
     kripto = db.query(func.sum(ZakatHistory.total_zakat)).filter(ZakatHistory.kategori == "Kripto").scalar() or 0
     harta = db.query(func.sum(ZakatHistory.total_zakat)).filter(ZakatHistory.kategori == "Zakat Harta").scalar() or 0
     logam = db.query(func.sum(ZakatHistory.total_zakat)).filter(ZakatHistory.kategori == "Logam/Emas").scalar() or 0
-    
-    # Jumlah besar (Grand Total)
     total_all = db.query(func.sum(ZakatHistory.total_zakat)).scalar() or 0
     
     return {
@@ -193,27 +203,26 @@ async def get_summary(db: Session = Depends(get_db)):
 async def get_history(limit: int = 15, db: Session = Depends(get_db)):
     return db.query(ZakatHistory).order_by(ZakatHistory.created_at.desc()).limit(limit).all()
 
-# --- ENDPOINT RESET: PADAM SEMUA DATA ---
 @app.delete("/api/history")
 async def reset_history(db: Session = Depends(get_db)):
     try:
-        # ARAHAN: Padam semua baris dalam jadual zakat_history
         db.query(ZakatHistory).delete()
         db.commit()
-        return {"message": "Database berjaya dikosongkan secara total"}
+        return {"message": "Database berjaya dikosongkan"}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Ralat sistem: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-# --- AI CHAT ASSISTANT ---
 @app.post("/api/ai-chat")
 async def chat_with_ai(request: ChatRequest):
+    if not GEMINI_KEY:
+        return {"reply": "Konfigurasi AI belum lengkap."}
     try:
         model = genai.GenerativeModel('gemini-1.5-flash') # type: ignore
         ctx = request.user_context or {}
         name = ctx.get("name", "Pengguna")
         loc = ctx.get("location", "Sabah")
-        job = ctx.get("occupation", "Full-Stack Developer")
+        job = ctx.get("occupation", "Developer")
 
         sys_prompt = (
             f"Nama anda adalah Maliyyah AI. Anda pakar zakat di {loc}. "
@@ -225,12 +234,4 @@ async def chat_with_ai(request: ChatRequest):
         response = model.generate_content(full_query)
         return {"reply": response.text}
     except Exception:
-        return {"reply": "Maaf, buat masa ini saya tidak dapat menjawab. Sila cuba sebentar lagi."}
-
-# ==========================================
-# 6. RUN SERVER
-# ==========================================
-#if __name__ == "__main__":
- #   import uvicorn
-    # Pastikan uvicorn dipasang: pip install uvicorn
-   # uvicorn.run(app, host="127.0.0.1", port=8000)
+        return {"reply": "Maaf, buat masa ini saya tidak dapat menjawab."}
