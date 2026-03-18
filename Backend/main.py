@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, func
@@ -7,6 +9,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 import google.generativeai as genai
+from dotenv import load_dotenv # Pastikan ini juga ada jika guna .env
 
 # ==========================================
 # 1. KONFIGURASI DATABASE (PostgreSQL)
@@ -80,7 +83,8 @@ app.add_middleware(
 )
 
 # Konfigurasi AI Gemini
-GEMINI_KEY = "AIzaSyD8uQ49LvI8wI7DgEc4KaD68_w-5hX5mOA"
+load_dotenv()
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_KEY) # type: ignore
 
 # Dependency untuk sesi database
