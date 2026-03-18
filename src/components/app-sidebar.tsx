@@ -24,7 +24,7 @@ import { NavUser } from "@/components/nav-user";
 import { Link, useLocation } from "react-router-dom";
 
 // Import ikon rasmi dari assets
-import Maliyyah from "@/assets/maliyyah.png";
+//import Maliyyah from "@/assets/maliyyah.png";
 
 const mainMenuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -43,8 +43,8 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 px-2 mb-2">
           <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 overflow-hidden">
             <img
-              src={Maliyyah}
-              alt="Maliyyah Logo"
+              //src={Maliyyah}
+              //alt="Maliyyah Logo"
               className="size-8 object-contain transition-transform hover:scale-110"
             />
           </div>
