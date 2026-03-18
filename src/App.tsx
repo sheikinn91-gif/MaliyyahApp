@@ -38,9 +38,9 @@ function App() {
       }
     } else {
       // SET DATA DEMO: Jika tiada sesi, set data default supaya Dashboard tidak kosong
-      if (setUserName) setUserName("Pelawat Demo");
-      if (setLocation) setLocation("SABAH");
-      if (setOccupation) setOccupation("Software Developer");
+      if (setUserName) setUserName("");
+      if (setLocation) setLocation("");
+      if (setOccupation) setOccupation("");
     }
   }, [setUserName, setUserEmail, setLocation, setOccupation]);
 
