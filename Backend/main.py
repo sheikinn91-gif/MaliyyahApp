@@ -14,7 +14,7 @@ from dotenv import load_dotenv # Pastikan ini juga ada jika guna .env
 # ==========================================
 # 1. KONFIGURASI DATABASE (PostgreSQL)
 # ==========================================
-DATABASE_URL = "postgresql://postgres:910805126536@localhost:5432/maliyyah_db"
+DATABASE_URL = "sqlite:///./maliyyah.db"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -230,7 +230,7 @@ async def chat_with_ai(request: ChatRequest):
 # ==========================================
 # 6. RUN SERVER
 # ==========================================
-if __name__ == "__main__":
-    import uvicorn
+#if __name__ == "__main__":
+ #   import uvicorn
     # Pastikan uvicorn dipasang: pip install uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+   # uvicorn.run(app, host="127.0.0.1", port=8000)
