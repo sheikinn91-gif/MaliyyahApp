@@ -186,7 +186,7 @@ function SignUp() {
                 className={`rounded-xl h-11 ${errors.email ? "border-red-500" : ""}`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="sheikin@example.com"
+                placeholder="Amir@example.com"
               />
               {errors.email && (
                 <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">
