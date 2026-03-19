@@ -17,6 +17,21 @@ export default function LoginPage() {
   const { login } = useZakat();
   const navigate = useNavigate();
 
+  const handleDemoLogin = () => {
+    // Gantikan dengan username & password akaun yang sudah wujud dalam DB anda
+    setUsername("pelawat");
+    setPassword("password123");
+
+    // Beri masa 100ms untuk state dikemaskini sebelum tekan login automatik
+    // Beri masa 100ms untuk state dikemaskini sebelum tekan login automatik
+    setTimeout(() => {
+      // Pastikan butang LOG MASUK anda ada id="login-submit-btn"
+      // atau gunakan querySelector ini:
+      const loginButton = document.querySelector('button[type="submit"]');
+      if (loginButton) (loginButton as HTMLButtonElement).click();
+    }, 100);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -167,6 +182,22 @@ export default function LoginPage() {
                   </span>
                 )}
               </Button>
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                style={{
+                  marginTop: "10px",
+                  backgroundColor: "#6c757d", // Warna kelabu (secondary)
+                  color: "white",
+                  padding: "10px",
+                  borderRadius: "5px",
+                  width: "100%",
+                  cursor: "pointer",
+                  border: "none",
+                }}
+              >
+                ✨ Cuba Akaun Demo (Cepat)
+              </button>
             </form>
 
             <div className="mt-8 text-center border-t pt-6">
