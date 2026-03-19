@@ -68,7 +68,7 @@ const Dashboard = () => {
 
   const refreshData = async () => {
     const token = localStorage.getItem("maliyyah_token");
-    const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    const apiUrl = import.meta.env.VITE_API_URL; //|| "http://127.0.0.1:8000";
 
     if (!token) {
       setRecentHistory([]);
@@ -108,7 +108,7 @@ const Dashboard = () => {
       return;
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+      const apiUrl = import.meta.env.VITE_API_URL; //|| "http://127.0.0.1:8000";
       const res = await fetch(`${apiUrl}/api/history`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
