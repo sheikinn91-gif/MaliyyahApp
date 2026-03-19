@@ -19,7 +19,7 @@ export default function LoginPage() {
 
   const handleDemoLogin = () => {
     // Gantikan dengan username & password akaun yang sudah wujud dalam DB anda
-    setUsername("pelawat");
+    setUsername("juri_online");
     setPassword("password123");
 
     // Beri masa 100ms untuk state dikemaskini sebelum tekan login automatik

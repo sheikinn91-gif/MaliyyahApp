@@ -169,7 +169,7 @@ function SignUp() {
                 className={`rounded-xl h-11 ${errors.userName ? "border-red-500" : ""}`}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="cth: sheikin"
+                placeholder="cth: Amir"
               />
               {errors.userName && (
                 <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">
