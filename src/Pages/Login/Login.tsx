@@ -124,7 +124,7 @@ export default function LoginPage() {
                   <User className="h-4 w-4 text-slate-400" /> Nama Pengguna
                 </label>
                 <Input
-                  placeholder="amir_dev"
+                  placeholder="amir"
                   disabled={isLoading}
                   autoFocus
                   value={username}
