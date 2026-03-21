@@ -41,6 +41,12 @@ export default function Dashboard() {
     fetchHistory();
   }, []);
 
+  const handlePayNow = () => {
+    // Contoh: Buka portal zakat atau scroll ke kalkulator
+    window.open("https://app.zakat.com.my", "_blank");
+    toast.success("Membuka portal bayaran...");
+  };
+
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
   const handleReset = async () => {
     if (!confirm("Padam semua sejarah aktiviti?")) return;
@@ -129,7 +135,10 @@ export default function Dashboard() {
               })}
             </span>
           </div>
-          <button className="mt-8 bg-white text-[#006837] px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-100 shadow-lg active:scale-95 transition-all">
+          <button
+            onClick={handlePayNow}
+            className="mt-8 bg-white text-[#006837] px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-slate-100 shadow-lg active:scale-95 transition-all"
+          >
             BAYAR SEKARANG <ChevronRight size={18} />
           </button>
         </div>
