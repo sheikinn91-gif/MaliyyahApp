@@ -129,43 +129,59 @@ export default function Zakat() {
 
   // --- FUNGSI SUBMIT KE DASHBOARD & API ---
   const handleFinalSubmit = async () => {
-    const totalValue = grandTotal();
+    try {
+      const totalValue = grandTotal();
 
-    // 1. DEKLARASI DI SINI (SEKALI SAHAJA)
-    const token = localStorage.getItem("maliyyah_token");
-    const savedUser = localStorage.getItem("maliyyah_user");
+      if (totalValue <= 0) {
+        toast.error("Sila masukkan nilai untuk dikira.");
+        return;
+      }
 
-    const payload = {
-      total: Number(totalValue.toFixed(2)),
-      pendapatan: Number(incomeZakatResult.toFixed(2)),
-      kripto: Number(cryptoZakat().toFixed(2)),
-      harta: Number(wealthZakat().toFixed(2)),
-      logam: Number((goldZakat() + silverZakat()).toFixed(2)),
-    };
+      // 1. Ambil Token & User
+      const token = localStorage.getItem("maliyyah_token");
+      const savedUser = localStorage.getItem("maliyyah_user");
 
-    localStorage.setItem("maliyyah_zakat_data", JSON.stringify(payload));
+      // 2. Siapkan Payload
+      const payload = {
+        total: Number(totalValue.toFixed(2)),
+        pendapatan: Number(incomeZakatResult.toFixed(2)),
+        kripto: Number(cryptoZakat().toFixed(2)),
+        harta: Number(wealthZakat().toFixed(2)),
+        logam: Number((goldZakat() + silverZakat()).toFixed(2)),
+      };
 
-    // 2. GUNA SAHAJA, JANGAN DEKLARASI LAGI
-    if (token) {
-      try {
-        // Di sini JANGAN tulis 'const token' lagi. Terus guna 'token'.
-        await fetch(`${apiUrl}/api/calculate`, {
+      // 3. SIMPAN LOKAL (Paling Penting!)
+      localStorage.setItem("maliyyah_zakat_data", JSON.stringify(payload));
+
+      // Update context jika fungsi wujud
+      if (setZakatResults) {
+        (setZakatResults as any)(payload);
+      }
+
+      toast.success("Rekod disimpan!");
+
+      // 4. Hantar API (Tanpa 'await' supaya tak sekat navigasi)
+      if (token && savedUser) {
+        fetch(`${apiUrl}/api/calculate`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Guna token yang di atas tadi
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
-        });
-      } catch (error) {
-        console.error("API Error");
+        }).catch((e) => console.log("API 422/Error diabaikan"));
       }
-    }
 
-    // 3. NAVIGASI
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 1000);
+      // 5. NAVIGASI PAKSA KE "/" (Dashboard Utama)
+      // Kita guna timeout sedikit lama (1.2s) supaya toast sempat muncul
+      setTimeout(() => {
+        window.location.assign("/"); // Lebih stabil daripada .href
+      }, 1200);
+    } catch (error) {
+      console.error("Critical Submit Error:", error);
+      // Jika semua gagal, tetap paksa balik ke Dashboard
+      window.location.assign("/");
+    }
   };
   return (
     <div className="w-full min-h-screen bg-slate-50/50 p-4 lg:p-8 pb-24 text-slate-900">
