@@ -189,6 +189,52 @@ async def calculate_zakat(req: CalculateRequest, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/api/calculate-income-zakat")
+async def calculate_income_zakat(data: dict, db: Session = Depends(get_db)):
+    try:
+        # 1. Logik Pengiraan (Sama seperti tadi)
+        gaji_bulanan = data.get("monthly_salary", 0)
+        pendapatan_lain = data.get("other_income", 0)
+        
+        tolakan_diri = 12000
+        tolakan_pasangan = 5000 if data.get("has_spouse") else 0
+        tolakan_anak = data.get("children_count", 0) * 2000
+        tolakan_kwsp = (gaji_bulanan * 12) * 0.11
+        
+        total_pendapatan_tahunan = (gaji_bulanan * 12) + pendapatan_lain
+        total_tolakan = tolakan_diri + tolakan_pasangan + tolakan_anak + tolakan_kwsp
+        pendapatan_bersih = total_pendapatan_tahunan - total_tolakan
+        
+        # Nisab Emas (Harga terkini kita tadi)
+        nisab_semasa = 571.85 * 85 
+        zakat_val = 0
+        if pendapatan_bersih >= nisab_semasa:
+            zakat_val = round(pendapatan_bersih * 0.025, 2)
+
+        # 2. SIMPAN KE DATABASE (ZakatHistory)
+        new_history = ZakatHistory(
+            kategori="Pendapatan",
+            pendapatan=total_pendapatan_tahunan,
+            kripto=0,
+            harta=0,
+            logam=0,
+            total_zakat=zakat_val
+        )
+        db.add(new_history)
+        db.commit()
+        db.refresh(new_history)
+
+        return {
+            "status": "success",
+            "zakat_amount": zakat_val,
+            "monthly_zakat": round(zakat_val / 12, 2),
+            "nisab_reference": round(nisab_semasa, 2),
+            "data": new_history
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/zakat-summary")
 async def get_summary(db: Session = Depends(get_db)):
