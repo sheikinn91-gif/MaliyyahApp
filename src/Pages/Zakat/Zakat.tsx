@@ -213,71 +213,57 @@ export default function Zakat() {
     wealthZakat();
 
   // --- HANDLE SUBMIT DENGAN TEKNIK BYPASS ANY ---
+  // --- GANTIKAN SEMUA BLOK SUBMIT & CONFIRM DENGAN INI ---
   const handleFinalSubmit = async () => {
     const totalValue = grandTotal();
+
     if (totalValue <= 0) {
       toast.error("Tiada jumlah zakat untuk direkodkan.");
       return;
     }
 
     const token = localStorage.getItem("maliyyah_token");
-    const transactions = [
-      { kategori: "PENDAPATAN", amaun: Number(incomeZakatResult.toFixed(2)) },
-      { kategori: "KRIPTO", amaun: Number(cryptoZakat().toFixed(2)) },
-      { kategori: "HARTA", amaun: Number(wealthZakat().toFixed(2)) },
-      {
-        kategori: "LOGAM/EMAS",
-        amaun: Number((goldZakat() + silverZakat()).toFixed(2)),
-      },
-    ].filter((t) => t.amaun > 0);
+
+    const payload = {
+      kategori: "ZAKAT KESELURUHAN",
+      total_zakat: Number(totalValue.toFixed(2)),
+      pendapatan: Number(incomeZakatResult.toFixed(2)),
+      kripto: Number(cryptoZakat().toFixed(2)),
+      harta: Number(wealthZakat().toFixed(2)),
+      logam: Number((goldZakat() + silverZakat()).toFixed(2)),
+    };
 
     try {
-      const promises = transactions.map((t) =>
-        fetch(`${apiUrl}/api/calculate`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            kategori: t.kategori,
-            total_zakat: t.amaun,
-            pendapatan: t.kategori === "PENDAPATAN" ? t.amaun : 0,
-            kripto: t.kategori === "KRIPTO" ? t.amaun : 0,
-            harta: t.kategori === "HARTA" ? t.amaun : 0,
-            logam: t.kategori === "LOGAM/EMAS" ? t.amaun : 0,
-          }),
-        }),
-      );
+      const response = await fetch(`${apiUrl}/api/calculate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-      const responses = await Promise.all(promises);
-      if (responses.every((r) => r.ok)) {
-        // --- TRICK: Gunakan 'as any' untuk bypass ralat TypeScript ---
-        (setZakatResults as any)({
-          pendapatan: Number(incomeZakatResult.toFixed(2)),
-          kripto: Number(cryptoZakat().toFixed(2)),
-          harta: Number(wealthZakat().toFixed(2)),
-          logam: Number((goldZakat() + silverZakat()).toFixed(2)),
-          total_zakat: Number(totalValue.toFixed(2)),
-        });
-
+      if (response.ok) {
+        (setZakatResults as any)(payload);
         toast.success("Rekod berjaya disimpan!");
         setIsModalOpen(true);
       } else {
         toast.error("Gagal menyimpan rekod.");
       }
     } catch (error) {
+      console.error("Ralat:", error);
       toast.error("Ralat pelayan.");
     }
   };
 
   const onConfirmIntent = (method: string) => {
-    if (method === "MUIS")
+    if (method === "MUIS") {
       window.open("https://zakat.muis.gov.my/online/", "_blank");
+    }
     setIsModalOpen(false);
     navigate("/dashboard");
   };
-
+  // --- HABIS BLOK ---
   return (
     <div className="p-4 space-y-6 max-w-6xl mx-auto pb-20 text-slate-900">
       <header className="text-center space-y-2">
