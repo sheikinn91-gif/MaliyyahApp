@@ -1,495 +1,248 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
-  CheckCircle,
-  Banknote,
-  TrendingUp,
-  Coins,
+  Clock,
+  RotateCcw,
+  FileText,
   Wallet,
-  ExternalLink,
+  Coins,
+  Briefcase,
+  History,
+  Lightbulb,
+  TrendingUp,
   CreditCard,
-  X,
-  CheckCircle2,
-  Info,
+  ExternalLink,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { useZakat } from "@/components/Context/ZakatContext";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+export default function MaliyyahDashboard() {
+  // 1. STATE UTAMA - Bermula dengan 0 untuk paparan RM 0.00 bila tiada data
+  const [totalZakat, setTotalZakat] = useState<number>(0);
+  const [zakatPendapatan, setZakatPendapatan] = useState<number>(0);
+  const [zakatKripto, setZakatKripto] = useState<number>(0);
+  const [zakatHarta, setZakatHarta] = useState<number>(0);
+  const [zakatEmas, setZakatEmas] = useState<number>(0);
 
-// --- 1. KOMPONEN PAYMENT MODAL ---
-const PaymentModal = ({
-  isOpen,
-  onClose,
-  onConfirmIntent,
-  totalAmount,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirmIntent: (provider: string) => void;
-  totalAmount: number;
-}) => {
-  if (!isOpen) return null;
+  // State untuk History/Aktiviti Terkini
+  const [history, setHistory] = useState<any[]>([]);
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`Biller Code ${text} disalin!`);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 text-slate-900">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h3 className="text-xl font-bold">Pilih Cara Bayaran</h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-slate-100 rounded-full transition-colors"
-          >
-            <X className="h-6 w-6 text-slate-500" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div className="bg-slate-50 p-4 rounded-xl text-center mb-4">
-            <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">
-              Jumlah Zakat
-            </span>
-            <div className="text-3xl font-black text-green-600">
-              RM{" "}
-              {totalAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              })}
-            </div>
-          </div>
-
-          <button
-            onClick={() => onConfirmIntent("MUIS")}
-            className="w-full flex items-center p-4 border-2 border-slate-100 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
-          >
-            <div className="bg-emerald-100 p-3 rounded-lg group-hover:bg-emerald-200">
-              <ExternalLink className="h-6 w-6 text-emerald-600" />
-            </div>
-            <div className="ml-4 text-left">
-              <div className="font-bold">Portal Rasmi MUIS</div>
-              <div className="text-xs text-slate-500">
-                Bayar terus via FPX (Sabah)
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => {
-              copyToClipboard("4240");
-              onConfirmIntent("JomPAY");
-            }}
-            className="w-full flex items-center p-4 border-2 border-slate-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group"
-          >
-            <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200">
-              <CreditCard className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-4 text-left">
-              <div className="font-bold">JomPAY (Biller Code: 4240)</div>
-              <div className="text-xs text-slate-500">Klik untuk salin kod</div>
-            </div>
-          </button>
-        </div>
-
-        <div className="p-4 bg-slate-50 text-center">
-          <div className="flex items-center justify-center text-xs text-slate-400">
-            <CheckCircle2 className="h-4 w-4 mr-1 text-emerald-500" />
-            Rekod akan disimpan secara automatik
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- 2. KOMPONEN UTAMA ZAKAT ---
-export default function Zakat() {
-  const { setZakatResults } = useZakat();
-  const navigate = useNavigate();
-
-  // Input States
-  const [salary, setSalary] = useState<number>(0);
-  const [bonus, setBonus] = useState<number>(0);
-  const [hasSpouse, setHasSpouse] = useState<boolean>(false);
-  const [childrenCount, setChildrenCount] = useState<number>(0);
-  const [incomeZakatResult, setIncomeZakatResult] = useState<number>(0);
-  const [kwsp, setKwsp] = useState<number>(0); // 11% biasanya
-  const [parents, setParents] = useState<number>(0); // Pemberian ibu bapa
-  const [education, setEducation] = useState<number>(0); // Yuran belajar
-
-  const [cryptoBalance, setCryptoBalance] = useState<number>(0);
-  const [goldWeight, setGoldWeight] = useState<number>(0);
-  const [silverWeight, setSilverWeight] = useState<number>(0);
-  const [goldType, setGoldType] = useState<"simpanan" | "perhiasan">(
-    "simpanan",
-  );
-  const [savingsAmount, setSavingsAmount] = useState<number>(0);
-  const [investmentAmount, setInvestmentAmount] = useState<number>(0);
-
-  // Prices State
-  const [livePrices, setLivePrices] = useState({ btc: 0, gold: 0, silver: 0 });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // URL API
-  const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-
-  // Fetch Market Prices
+  // 2. MAGNET PENARIK DATA (useEffect)
+  // Fungsi ini akan menarik data dari Kalkulator secara automatik tanpa menjejaskan UI
   useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/api/live-market`);
-        const data = await response.json();
-        setLivePrices({
-          btc: data.btc,
-          gold: data.gold_gram,
-          silver: data.silver_gram,
-        });
-      } catch (error) {
-        setLivePrices({ btc: 278821, gold: 571.86, silver: 10.59 });
-      }
-    };
-    fetchPrices();
-  }, [apiUrl]);
+    const dataMentah = localStorage.getItem("maliyyah_zakat_data");
 
-  const nisabSemasa = livePrices.gold * 85;
+    if (dataMentah) {
+      const data = JSON.parse(dataMentah);
 
-  // Logik Pengiraan Pendapatan
-  // --- 1. LOGIK PENGIRAAN PENDAPATAN DENGAN HAD KIFAYAH ---
-  const calculateIncomeZakat = useCallback(() => {
-    // Bonus dibahagi 12 untuk pengiraan bulanan yang adil
-    const totalMonthlyIncome = salary + bonus / 12;
+      // Mengemaskini Banner Hijau dan Kad Zakat dengan nilai sebenar
+      setTotalZakat(data.total || 0);
+      setZakatPendapatan(data.pendapatan || 0);
+      setZakatKripto(data.kripto || 0);
+      setZakatHarta(data.harta || 0);
+      setZakatEmas(data.logam || 0); // Mengikut key 'logam' dari payload kalkulator
 
-    if (totalMonthlyIncome <= 0) {
-      setIncomeZakatResult(0);
-      return;
-    }
-
-    // --- KADAR HAD KIFAYAH (Standard Bulanan) ---
-    const HAD_KIFAYAH = {
-      DIRI: 1000,
-      ISTERI: 500,
-      ANAK: 250,
-    };
-
-    // 1. Kira Had Kifayah Asas berdasarkan tanggungan
-    let pelepasanAsas = HAD_KIFAYAH.DIRI;
-    if (hasSpouse) pelepasanAsas += HAD_KIFAYAH.ISTERI;
-    pelepasanAsas += childrenCount * HAD_KIFAYAH.ANAK;
-
-    // 2. Auto-Calculate KWSP 11% daripada Gaji Pokok (Boleh diubah manual kemudian)
-    // Jika anda mahu pengguna isi sendiri, biarkan nilai kwsp dari state
-    const kwspDeduction = kwsp > 0 ? kwsp : salary * 0.11;
-
-    // 3. Kira Pelepasan Tambahan (KWSP + Ibu Bapa + Pendidikan)
-    const pelepasanTambahan = kwspDeduction + parents + education;
-
-    // 4. Pendapatan Bersih (Tolak semua pelepasan)
-    const bakiPendapatan =
-      totalMonthlyIncome - pelepasanAsas - pelepasanTambahan;
-
-    // 5. Semakan Nisab (Nisab Semasa dibahagi 12)
-    const nisabBulanan = nisabSemasa / 12;
-
-    // SYARAT: Wajib Zakat jika Gaji Kasar > Nisab DAN ada baki selepas Had Kifayah
-    if (totalMonthlyIncome >= nisabBulanan && bakiPendapatan > 0) {
-      setIncomeZakatResult(bakiPendapatan * 0.025);
-    } else {
-      setIncomeZakatResult(0);
-    }
-  }, [
-    salary,
-    bonus,
-    hasSpouse,
-    childrenCount,
-    kwsp,
-    parents,
-    education,
-    nisabSemasa,
-  ]);
-
-  // Panggil fungsi pengiraan setiap kali input berubah
-  useEffect(() => {
-    calculateIncomeZakat();
-  }, [calculateIncomeZakat]);
-  // Logik Zakat
-  const cryptoZakat = () =>
-    cryptoBalance * livePrices.btc >= nisabSemasa
-      ? cryptoBalance * livePrices.btc * 0.025
-      : 0;
-  const goldZakat = () => {
-    const URF_SABAH = 150;
-    if (goldType === "simpanan")
-      return goldWeight >= 85 ? goldWeight * livePrices.gold * 0.025 : 0;
-    return goldWeight > URF_SABAH
-      ? (goldWeight - URF_SABAH) * livePrices.gold * 0.025
-      : 0;
-  };
-  const silverZakat = () =>
-    silverWeight >= 595 ? silverWeight * livePrices.silver * 0.025 : 0;
-  const wealthZakat = () =>
-    savingsAmount + investmentAmount >= nisabSemasa
-      ? (savingsAmount + investmentAmount) * 0.025
-      : 0;
-
-  const grandTotal = () =>
-    incomeZakatResult +
-    goldZakat() +
-    silverZakat() +
-    cryptoZakat() +
-    wealthZakat();
-
-  // --- HANDLE SUBMIT DENGAN TEKNIK BYPASS ANY ---
-  // --- GANTIKAN SEMUA BLOK SUBMIT & CONFIRM DENGAN INI ---
-  const handleFinalSubmit = async () => {
-    const totalValue = grandTotal();
-
-    if (totalValue <= 0) {
-      toast.error("Tiada jumlah zakat untuk direkodkan.");
-      return;
-    }
-
-    const token = localStorage.getItem("maliyyah_token");
-
-    const payload = {
-      kategori: "ZAKAT KESELURUHAN",
-      total_zakat: Number(totalValue.toFixed(2)),
-      pendapatan: Number(incomeZakatResult.toFixed(2)),
-      kripto: Number(cryptoZakat().toFixed(2)),
-      harta: Number(wealthZakat().toFixed(2)),
-      logam: Number((goldZakat() + silverZakat()).toFixed(2)),
-    };
-
-    try {
-      const response = await fetch(`${apiUrl}/api/calculate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      // Masukkan ke dalam rekod Aktiviti Terkini
+      setHistory([
+        {
+          tarikh: new Date().toLocaleDateString("en-GB"),
+          butiran: "ZAKAT KESELURUHAN",
+          jumlah: data.total,
         },
-        body: JSON.stringify(payload),
-      });
+      ]);
+    }
+  }, []); // Berjalan sekali setiap kali Dashboard dibuka
 
-      if (response.ok) {
-        (setZakatResults as any)(payload);
-        toast.success("Rekod berjaya disimpan!");
-        setIsModalOpen(true);
-      } else {
-        toast.error("Gagal menyimpan rekod.");
-      }
-    } catch (error) {
-      console.error("Ralat:", error);
-      toast.error("Ralat pelayan.");
+  // 3. FUNGSI RESET - Memaksa semua jadi 0 dan padam memori browser
+  const handleResetData = () => {
+    if (
+      window.confirm(
+        "ADAKAH ANDA PASTI? Ini akan memadam semua data di Dashboard.",
+      )
+    ) {
+      localStorage.removeItem("maliyyah_zakat_data");
+      setTotalZakat(0);
+      setZakatPendapatan(0);
+      setZakatKripto(0);
+      setZakatHarta(0);
+      setZakatEmas(0);
+      setHistory([]);
     }
   };
 
-  const onConfirmIntent = (method: string) => {
-    if (method === "MUIS") {
-      window.open("https://zakat.muis.gov.my/online/", "_blank");
-    }
-    setIsModalOpen(false);
-    navigate("/dashboard");
-  };
-  // --- HABIS BLOK ---
   return (
-    <div className="w-full min-h-screen bg-slate-50/50 p-4 lg:p-8 pb-24 text-slate-900">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* GRID UTAMA - 3 KOLUM YANG TEGAS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-          {/* 1. KAD PENDAPATAN */}
-          <Card className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden flex flex-col">
-            <div className="p-5 bg-blue-50/50 border-b border-blue-50 flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg text-white shadow-md">
-                <Banknote size={18} />
+    <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* BANNER HIJAU - Memaparkan total dari Kalkulator */}
+        <div className="bg-[#006747] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-2">
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
+                RM{" "}
+                {totalZakat.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h1>
+              <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                Status:{" "}
+                {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}{" "}
+                <ExternalLink size={12} />
               </div>
-              <h3 className="font-bold text-slate-800 text-sm">Pendapatan</h3>
             </div>
-            <CardContent className="p-6 flex flex-col flex-1">
-              <div className="space-y-4 mb-6">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                    Gaji Hakiki
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="RM 0.00"
-                    className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold text-sm"
-                    onChange={(e) => setSalary(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                    Bonus
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="RM 0.00"
-                    className="w-full p-3 bg-slate-50 border-2 border-transparent rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold text-sm"
-                    onChange={(e) => setBonus(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              {/* mt-auto menolak butang ke dasar kad */}
-              <div className="mt-auto p-5 bg-blue-600 rounded-2xl text-white text-center shadow-lg shadow-blue-100">
-                <p className="text-2xl font-black">
-                  RM{" "}
-                  {incomeZakatResult.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                  })}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 2. KAD PELEPASAN - DIBAIKI SUPAYA TIDAK MELIMPAH */}
-          <Card className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden flex flex-col">
-            <div className="p-5 bg-emerald-50/50 border-b border-emerald-50 flex items-center gap-3">
-              <div className="p-2 bg-emerald-600 rounded-lg text-white shadow-md">
-                <CheckCircle2 size={18} />
-              </div>
-              <h3 className="font-bold text-slate-800 text-sm">Pelepasan</h3>
-            </div>
-            <CardContent className="p-6 flex flex-col flex-1">
-              <div className="space-y-3 mb-6">
-                {["KWSP (11%)", "Ibu Bapa", "Pendidikan"].map((label, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                      {label}
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="RM 0.00"
-                      className="w-full p-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-emerald-500 outline-none font-bold text-sm"
-                      onChange={(e) => {
-                        if (idx === 0) setKwsp(Number(e.target.value));
-                        if (idx === 1) setParents(Number(e.target.value));
-                        if (idx === 2) setEducation(Number(e.target.value));
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-auto p-4 bg-emerald-50 rounded-xl border-2 border-dashed border-emerald-200 flex justify-between items-center">
-                <span className="text-[10px] font-black text-emerald-600 uppercase">
-                  Had Kifayah
-                </span>
-                <span className="font-black text-emerald-800 text-lg">
-                  RM{" "}
-                  {(
-                    1000 +
-                    (hasSpouse ? 500 : 0) +
-                    childrenCount * 250
-                  ).toLocaleString()}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 3. KAD KRIPTO */}
-          <Card className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden flex flex-col">
-            <div className="p-5 bg-orange-50/50 border-b border-orange-50 flex items-center gap-3">
-              <div className="p-2 bg-orange-600 rounded-lg text-white shadow-md">
-                <TrendingUp size={18} />
-              </div>
-              <h3 className="font-bold text-slate-800 text-sm">Zakat Kripto</h3>
-            </div>
-            <CardContent className="p-6 flex flex-col flex-1">
-              <div className="space-y-2 mb-6">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  Portfolio (RM)
-                </label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  className="w-full p-4 bg-slate-50 border-2 border-transparent rounded-xl text-center text-lg font-black text-orange-700 outline-none focus:border-orange-500 shadow-inner"
-                  onChange={(e) => setCryptoBalance(Number(e.target.value))}
-                />
-              </div>
-              <div className="mt-auto p-5 bg-orange-600 rounded-2xl text-white text-center font-black text-2xl shadow-lg shadow-orange-100">
-                RM {cryptoZakat().toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 4. KAD LOGAM */}
-          <Card className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden flex flex-col">
-            <div className="p-5 bg-yellow-50/50 border-b border-yellow-100 flex items-center gap-3">
-              <div className="p-2 bg-yellow-600 rounded-lg text-white shadow-md">
-                <Coins size={18} />
-              </div>
-              <h3 className="font-bold text-slate-800 text-sm">Logam</h3>
-            </div>
-            <CardContent className="p-6 flex flex-col flex-1">
-              <div className="space-y-3 mb-6">
-                <input
-                  type="number"
-                  placeholder="Emas (g)"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-yellow-500"
-                  onChange={(e) => setGoldWeight(Number(e.target.value))}
-                />
-                <input
-                  type="number"
-                  placeholder="Perak (g)"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm outline-none focus:ring-2 focus:ring-yellow-500"
-                  onChange={(e) => setSilverWeight(Number(e.target.value))}
-                />
-              </div>
-              <div className="mt-auto p-5 bg-yellow-600 rounded-2xl text-white text-center font-black text-2xl shadow-lg shadow-yellow-100">
-                RM {(goldZakat() + silverZakat()).toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 5. KAD HARTA */}
-          <Card className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden flex flex-col">
-            <div className="p-5 bg-teal-50/50 border-b border-teal-50 flex items-center gap-3">
-              <div className="p-2 bg-teal-600 rounded-lg text-white shadow-md">
-                <Wallet size={18} />
-              </div>
-              <h3 className="font-bold text-slate-800 text-sm">Zakat Harta</h3>
-            </div>
-            <CardContent className="p-6 flex flex-col flex-1">
-              <div className="space-y-2 mb-6">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block text-center">
-                  Tunai / Simpanan
-                </label>
-                <input
-                  type="number"
-                  placeholder="RM 0.00"
-                  className="w-full p-4 bg-slate-50 border-2 border-teal-100 rounded-xl text-xl font-black text-center text-teal-700 outline-none focus:border-teal-500"
-                  onChange={(e) => setSavingsAmount(Number(e.target.value))}
-                />
-              </div>
-              <div className="mt-auto p-5 bg-teal-600 rounded-2xl text-white text-center font-black text-2xl shadow-lg shadow-teal-100">
-                RM {wealthZakat().toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 6. TOTAL ZAKAT WAJIB - DIBAIKI TEKS BUTANG */}
-          <Card className="border-4 border-dashed border-green-200 bg-green-50/40 rounded-[2.5rem] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-green-500"></div>
-            <p className="text-[10px] font-black text-green-700 uppercase tracking-widest mb-4">
-              Total Zakat Wajib
-            </p>
-            <h2 className="text-5xl font-black text-green-600 tracking-tighter mb-8">
-              RM{" "}
-              {grandTotal().toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              })}
-            </h2>
-            {/* whitespace-nowrap dibuang supaya teks boleh wrap jika perlu, atau p-4 dikurangkan */}
-            <Button
-              onClick={handleFinalSubmit}
-              className="w-full py-6 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-lg font-bold shadow-xl shadow-green-100 flex items-center justify-center gap-3 active:scale-95 transition-all px-2"
-            >
-              <CheckCircle size={24} className="shrink-0" />
-              <span className="leading-tight">Tunaikan & Simpan</span>
+            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95">
+              Bayar Sekarang <CreditCard size={20} />
             </Button>
-          </Card>
+          </div>
+          <div className="absolute -right-10 -bottom-10 opacity-10">
+            <TrendingUp size={250} />
+          </div>
+        </div>
+
+        {/* 4 KAD ZAKAT - Menarik data dari state yang dikemaskini */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              label: "ZAKAT PENDAPATAN",
+              val: zakatPendapatan,
+              icon: <Wallet className="text-blue-600" />,
+              bg: "bg-blue-50",
+            },
+            {
+              label: "ZAKAT KRIPTO",
+              val: zakatKripto,
+              icon: <Coins className="text-purple-600" />,
+              bg: "bg-purple-50",
+            },
+            {
+              label: "ZAKAT HARTA",
+              val: zakatHarta,
+              icon: <Briefcase className="text-orange-600" />,
+              bg: "bg-orange-50",
+            },
+            {
+              label: "ZAKAT LOGAM/EMAS",
+              val: zakatEmas,
+              icon: <History className="text-yellow-600" />,
+              bg: "bg-yellow-50",
+            },
+          ].map((item, i) => (
+            <Card
+              key={i}
+              className="border-none shadow-sm rounded-[1.5rem] p-6 bg-white"
+            >
+              <div className="flex justify-between items-start mb-6">
+                <span className="text-[10px] font-black text-slate-400 tracking-wider uppercase">
+                  {item.label}
+                </span>
+                <div className={`p-2 rounded-xl ${item.bg}`}>{item.icon}</div>
+              </div>
+              <h3 className="text-2xl font-black text-slate-800">
+                RM{" "}
+                {item.val.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h3>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* JADUAL AKTIVITI TERKINI */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex justify-between items-center px-2">
+              <h3 className="font-bold flex items-center gap-2 text-slate-700">
+                <Clock size={18} /> Aktiviti Terkini
+              </h3>
+              <button
+                onClick={handleResetData}
+                className="text-[10px] font-black text-slate-400 hover:text-red-500 flex items-center gap-1 p-2 uppercase tracking-widest cursor-pointer transition-all"
+              >
+                <RotateCcw size={12} /> Reset Data
+              </button>
+            </div>
+
+            <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden min-h-[300px]">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 border-b uppercase tracking-widest">
+                    <th className="px-6 py-5">Tarikh</th>
+                    <th className="px-6 py-5">Butiran Zakat</th>
+                    <th className="px-6 py-5 text-right">Tindakan</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {history.length > 0 ? (
+                    history.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/30">
+                        <td className="px-6 py-4 text-sm text-slate-500 italic">
+                          {row.tarikh}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-[10px] font-black text-slate-400 uppercase mb-1">
+                            PEMBAYARAN
+                          </div>
+                          <div className="text-sm font-black text-slate-800">
+                            RM{" "}
+                            {row.jumlah.toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => window.print()}
+                            className="text-blue-500 font-black text-[10px] bg-blue-50 px-3 py-1.5 rounded-lg uppercase tracking-widest"
+                          >
+                            <FileText size={14} className="inline mr-1" /> PDF
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="px-6 py-20 text-center text-slate-300 italic text-sm"
+                      >
+                        Belum ada rekod (Totally Clean).
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* SIDEBAR MARKET PULSE */}
+          <div className="space-y-6">
+            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
+              <div className="flex items-center gap-2 text-emerald-600 font-bold mb-4">
+                <div className="p-2 bg-emerald-50 rounded-lg">
+                  <Lightbulb size={18} />
+                </div>
+                <h3>Didik Zakat</h3>
+              </div>
+              <p className="text-xs text-slate-500 italic">
+                "Penyucian harta bermula dengan niat yang ikhlas."
+              </p>
+            </Card>
+
+            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest">
+                Market Pulse
+              </h3>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl font-black italic text-xs">
+                    BTC
+                  </div>
+                  <p className="text-sm font-black text-slate-800">Bitcoin</p>
+                </div>
+                <div className="text-right font-black text-sm">
+                  RM 278,742.88
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
