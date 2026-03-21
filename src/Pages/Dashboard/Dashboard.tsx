@@ -26,8 +26,11 @@ export default function MaliyyahDashboard() {
   ]);
 
   const handleReset = () => {
-    console.log("Data Reset");
-    // Logik reset data anda di sini
+    if (window.confirm("Adakah anda pasti untuk reset semua data aktiviti?")) {
+      setHistory([]); // Ini akan mengosongkan jadual Aktiviti Terkini
+      console.log("Data Berjaya Direset!");
+      alert("Data Aktiviti Telah Direset.");
+    }
   };
 
   return (
