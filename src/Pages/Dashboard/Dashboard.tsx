@@ -42,28 +42,20 @@ export default function Dashboard() {
   }, []);
 
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
-  const handleReset = async () => {
-    // 1. Minta pengesahan (Penting!)
-    if (!confirm("Adakah anda pasti mahu memadam semua rekod aktiviti?"))
-      return;
+  const handleReset = () => {
+    // 1. Padam punca data dalam browser
+    localStorage.removeItem("zakat_history");
+    localStorage.clear(); // Untuk kepastian, padam semua simpanan
 
-    try {
-      // 2. Panggil API untuk padam data di database
-      const response = await fetch("/api/zakat/reset", { method: "DELETE" });
-
-      if (response.ok) {
-        // 3. Kosongkan state history supaya UI terus bersih
-        setHistory([]);
-
-        // 4. Baru lakukan reload untuk kosongkan semua input lain (Gaji, Emas, dll)
-        window.location.reload();
-        toast.success("Semua rekod telah dipadamkan.");
-      }
-    } catch (error) {
-      toast.error("Gagal memadam data.");
+    // 2. Kosongkan state history supaya senarai hilang di skrin
+    if (typeof setHistory === "function") {
+      setHistory([]);
     }
-  };
 
+    // 3. Baru reload untuk 'reset' segalanya ke kosong
+    window.location.reload();
+    toast.success("Semua data sejarah telah dipadam.");
+  };
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
   const downloadPDF = (id: string) => {
     toast.info("Menjana PDF... Sila tunggu.");
