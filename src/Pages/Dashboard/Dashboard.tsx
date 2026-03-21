@@ -26,6 +26,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
+import html2pdf from "html2pdf.js";
 
 export default function Dashboard() {
   const { zakatResults } = useZakat() as any;
@@ -348,27 +349,73 @@ export default function Dashboard() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {history.length > 0 ? (
-                  history.slice(0, 5).map((item: any, i: number) => (
-                    <tr
-                      key={i}
-                      className="hover:bg-slate-50/50 transition-colors group"
-                    >
-                      <td className="px-6 py-4 text-sm text-slate-500">
-                        {new Date(item.created_at).toLocaleDateString("ms-MY")}
-                      </td>
-                      <td className="px-6 py-4 font-bold text-slate-800 font-mono">
-                        RM {Number(item.total_zakat).toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => downloadPDF(item.id)}
-                          className="text-blue-500 hover:text-blue-700 font-bold text-xs inline-flex items-center gap-1"
-                        >
-                          <FileText size={14} /> PDF
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  history.slice(0, 5).map((item: any, i: number) => {
+                    // Tukar format tarikh dan jumlah siap-siap untuk paparan & PDF
+                    const formattedDate = new Date(
+                      item.created_at,
+                    ).toLocaleDateString("ms-MY");
+                    const formattedAmount = Number(
+                      item.total_zakat,
+                    ).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+                    return (
+                      <tr
+                        key={i}
+                        className="hover:bg-slate-50/50 transition-colors group"
+                      >
+                        <td className="px-6 py-4 text-sm text-slate-500">
+                          {formattedDate}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-slate-800 font-mono">
+                          RM {formattedAmount}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const element = document.createElement("div");
+                              element.innerHTML = `
+                        <div style="padding: 50px; font-family: sans-serif; border: 1px solid #eee; border-radius: 10px;">
+                          <h2 style="color: #10b981; margin-bottom: 5px;">Maliyyah Zakat</h2>
+                          <p style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Resit Rasmi Pembayaran</p>
+                          <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
+                          <div style="margin-bottom: 10px;">
+                            <span style="color: #94a3b8; font-size: 12px;">Tarikh Transaksi:</span><br/>
+                            <strong style="font-size: 16px;">${formattedDate}</strong>
+                          </div>
+                          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                            <span style="color: #64748b; font-size: 12px;">Jumlah Zakat Ditunaikan:</span><br/>
+                            <strong style="font-size: 28px; color: #1e293b;">RM ${formattedAmount}</strong>
+                          </div>
+                          <p style="margin-top: 40px; font-size: 10px; color: #94a3b8; text-align: center;">
+                            Resit ini dijana secara digital oleh Maliyyah Engine.<br/>ID: ${item.id || "MLY-" + i}
+                          </p>
+                        </div>
+                      `;
+
+                              const opt = {
+                                margin: 10,
+                                filename: `Resit_Zakat_${formattedDate.replace(/\//g, "-")}.pdf`,
+                                image: { type: "jpeg", quality: 0.98 },
+                                html2canvas: { scale: 3 },
+                                jsPDF: {
+                                  unit: "mm",
+                                  format: "a4",
+                                  orientation: "portrait" as const,
+                                },
+                              };
+
+                              // @ts-ignore
+                              html2pdf().set(opt).from(element).save();
+                            }}
+                            className="text-blue-500 hover:text-blue-700 font-bold text-xs inline-flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-lg transition-all"
+                          >
+                            <FileText size={14} /> PDF
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
                     <td
