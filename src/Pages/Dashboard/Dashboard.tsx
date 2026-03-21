@@ -14,6 +14,7 @@ import {
   CreditCard,
   ExternalLink,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function MaliyyahDashboard() {
   // 1. STATE UNTUK PAPARAN DATA
@@ -84,7 +85,31 @@ export default function MaliyyahDashboard() {
                 <ExternalLink size={12} />
               </div>
             </div>
-            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95">
+            <Button
+              onClick={() => {
+                // 1. Ambil nilai terkini dari state Dashboard
+                if (totalZakat <= 0) {
+                  toast.error("Tiada jumlah zakat untuk dibayar.");
+                  return;
+                }
+
+                // 2. Logik Pilihan Pembayaran
+                // Anda boleh pilih satu: Tab Baru (Portal Zakat) atau Modal (Pop-up)
+
+                const confirmPay = window.confirm(
+                  `Anda akan membuat bayaran Zakat berjumlah RM ${totalZakat.toLocaleString(undefined, { minimumFractionDigits: 2 })}. Teruskan ke portal pembayaran?`,
+                );
+
+                if (confirmPay) {
+                  // Opsyen A: Terus ke Portal Rasmi (Contoh: Zakat Selangor/MUIS)
+                  window.open("https://fpx.zakat.com.my/", "_blank");
+
+                  // Opsyen B: Jika anda mahu simulasi "Success" untuk demo:
+                  // toast.success("Menghubungkan ke gerbang pembayaran FPX...");
+                }
+              }}
+              className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95"
+            >
               Bayar Sekarang <CreditCard size={20} />
             </Button>
           </div>
