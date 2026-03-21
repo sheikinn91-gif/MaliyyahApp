@@ -36,11 +36,14 @@ export default function AIChatBot() {
 
     try {
       // Pastikan backend FastAPI anda sedang berjalan di port 8000
-      const res = await fetch("http://localhost:8000/api/ai-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: currentInput }),
-      });
+      const res = await fetch(
+        "https://maliyyahapp-1.onrender.com/api/ai-chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: currentInput }),
+        },
+      );
 
       const data = await res.json();
 

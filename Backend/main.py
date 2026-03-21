@@ -99,7 +99,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://maliyyah-app.vercel.app", # URL Frontend anda
-        "http://localhost:3000"           # Untuk pembangunan lokal
+        "http://localhost:3000"  ,
+         "http://localhost:5173",                 # Untuk pembangunan lokal
     ],
     allow_credentials=True,
     allow_methods=["*"],
