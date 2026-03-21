@@ -13,74 +13,88 @@ import {
   TrendingUp,
   CreditCard,
   ExternalLink,
-  ChevronRight,
 } from "lucide-react";
 
 export default function MaliyyahDashboard() {
-  const [history, setHistory] = useState([
-    { tarikh: "21/3/2026", butiran: "PENDAPATAN", jumlah: "11,603.75" },
-    { tarikh: "21/3/2026", butiran: "PENDAPATAN", jumlah: "5,040.00" },
-    { tarikh: "21/3/2026", butiran: "PENDAPATAN", jumlah: "0.00" },
-    { tarikh: "21/3/2026", butiran: "PENDAPATAN", jumlah: "0.00" },
-    { tarikh: "21/3/2026", butiran: "PENDAPATAN", jumlah: "0.00" },
-  ]);
+  // 1. DATA BERMULA DENGAN 0 - BERSIH & SUCI BILA LOG IN
+  const [totalZakat, setTotalZakat] = useState(0);
+  const [zakatPendapatan, setZakatPendapatan] = useState(0);
+  const [zakatKripto, setZakatKripto] = useState(0);
+  const [zakatHarta, setZakatHarta] = useState(0);
+  const [zakatEmas, setZakatEmas] = useState(0);
 
-  const handleReset = () => {
-    if (window.confirm("Adakah anda pasti untuk reset semua data aktiviti?")) {
-      setHistory([]); // Ini akan mengosongkan jadual Aktiviti Terkini
-      console.log("Data Berjaya Direset!");
-      alert("Data Aktiviti Telah Direset.");
+  // Array sejarah kosong secara default
+  const [history, setHistory] = useState<any[]>([]);
+
+  // 2. FUNGSI TOTALLY RESET - TEKAN SAJA, SEMUA JADI 0 BALIK
+  const handleResetAll = () => {
+    if (
+      window.confirm(
+        "Adakah anda pasti untuk mengosongkan semua data dan kembali ke RM 0.00?",
+      )
+    ) {
+      setTotalZakat(0);
+      setZakatPendapatan(0);
+      setZakatKripto(0);
+      setZakatHarta(0);
+      setZakatEmas(0);
+      setHistory([]);
+      alert("Semua data telah dikosongkan (Totally Reset).");
     }
   };
 
   return (
     <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* BANNER HIJAU GERGASI */}
+        {/* BANNER HIJAU (EMERALD) */}
         <div className="bg-[#006747] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-2">
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
-                RM 11,603.75
+                RM{" "}
+                {totalZakat.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
               </h1>
               <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase">
-                Status: Menunggu Pembayaran <ExternalLink size={12} />
+                Status:{" "}
+                {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}{" "}
+                <ExternalLink size={12} />
               </div>
             </div>
-            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase">
+            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95">
               Bayar Sekarang <CreditCard size={20} />
             </Button>
           </div>
-          {/* Watermark Logo Background */}
           <div className="absolute -right-10 -bottom-10 opacity-10">
             <TrendingUp size={250} />
           </div>
         </div>
 
-        {/* 4 KAD ZAKAT (PENDAPATAN, KRIPTO, HARTA, EMAS) */}
+        {/* 4 KAD ZAKAT (RM 0.00) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
               label: "ZAKAT PENDAPATAN",
-              val: "420.00",
+              val: zakatPendapatan,
               icon: <Wallet className="text-blue-600" />,
               bg: "bg-blue-50",
             },
             {
               label: "ZAKAT KRIPTO",
-              val: "6,968.57",
+              val: zakatKripto,
               icon: <Coins className="text-purple-600" />,
               bg: "bg-purple-50",
             },
             {
               label: "ZAKAT HARTA",
-              val: "3,000.00",
+              val: zakatHarta,
               icon: <Briefcase className="text-orange-600" />,
               bg: "bg-orange-50",
             },
             {
               label: "ZAKAT LOGAM/EMAS",
-              val: "1,215.18",
+              val: zakatEmas,
               icon: <History className="text-yellow-600" />,
               bg: "bg-yellow-50",
             },
@@ -96,7 +110,10 @@ export default function MaliyyahDashboard() {
                 <div className={`p-2 rounded-xl ${item.bg}`}>{item.icon}</div>
               </div>
               <h3 className="text-2xl font-black text-slate-800">
-                RM {item.val}
+                RM{" "}
+                {item.val.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
               </h3>
             </Card>
           ))}
@@ -110,49 +127,52 @@ export default function MaliyyahDashboard() {
                 <Clock size={18} /> Aktiviti Terkini
               </h3>
               <button
-                onClick={handleReset}
-                className="text-[10px] font-bold text-slate-400 flex items-center gap-1 hover:text-emerald-600 transition-colors uppercase tracking-widest"
+                onClick={handleResetAll}
+                className="text-[10px] font-black text-slate-400 hover:text-red-500 flex items-center gap-1 transition-all cursor-pointer uppercase tracking-widest p-2"
               >
                 <RotateCcw size={12} /> Reset Data
               </button>
             </div>
 
-            <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden min-h-[300px]">
+              <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b">
+                  <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 border-b uppercase tracking-widest">
                     <th className="px-6 py-5">Tarikh</th>
                     <th className="px-6 py-5">Butiran Zakat</th>
                     <th className="px-6 py-5 text-right">Tindakan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {history.map((row, idx) => (
-                    <tr
-                      key={idx}
-                      className="hover:bg-slate-50/30 transition-colors"
-                    >
-                      <td className="px-6 py-4 text-sm font-medium text-slate-500 italic">
-                        {row.tarikh}
-                      </td>
-                      <td className="px-6 py-4 text-[10px]">
-                        <div className="font-black text-slate-400 uppercase tracking-tighter mb-1">
-                          {row.butiran}
-                        </div>
-                        <div className="text-sm font-black text-slate-800">
-                          RM {row.jumlah}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => window.print()}
-                          className="inline-flex items-center gap-1 text-blue-500 hover:text-blue-700 font-black text-[10px] uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-lg"
-                        >
-                          <FileText size={14} /> PDF
-                        </button>
+                  {history.length > 0 ? (
+                    history.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/30">
+                        <td className="px-6 py-4 text-sm text-slate-500 italic">
+                          {row.tarikh}
+                        </td>
+                        <td className="px-6 py-4 font-black">
+                          RM {row.jumlah.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => window.print()}
+                            className="text-blue-500 font-black text-[10px] bg-blue-50 px-3 py-1.5 rounded-lg"
+                          >
+                            <FileText size={14} /> PDF
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="px-6 py-20 text-center text-slate-300 italic text-sm"
+                      >
+                        Belum ada rekod (Totally Clean).
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -160,40 +180,22 @@ export default function MaliyyahDashboard() {
 
           {/* SIDEBAR WIDGETS */}
           <div className="space-y-6">
-            {/* DIDIK ZAKAT */}
-            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6 relative">
+            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
               <div className="flex items-center gap-2 text-emerald-600 font-bold mb-4">
                 <div className="p-2 bg-emerald-50 rounded-lg">
                   <Lightbulb size={18} />
                 </div>
                 <h3>Didik Zakat</h3>
-                <RotateCcw
-                  size={14}
-                  className="ml-auto text-slate-300 cursor-pointer"
-                />
               </div>
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-black text-emerald-600 tracking-widest uppercase">
-                  Zakat Logam (Emas)
-                </h4>
-                <p className="text-xs text-slate-500 leading-relaxed italic">
-                  "Emas yang tidak dipakai (disimpan) wajib dizakatkan jika
-                  beratnya mencecah atau melebihi 85 gram."
-                </p>
-                <div className="pt-4 flex items-center text-[8px] font-bold text-slate-300 uppercase tracking-widest gap-2">
-                  <History size={12} /> Sumber: Pejabat Zakat Malaysia
-                </div>
-              </div>
+              <p className="text-xs text-slate-500 italic">
+                "Penyucian harta bermula dengan zakat yang tepat."
+              </p>
             </Card>
 
-            {/* MARKET PULSE (BITCOIN) */}
             <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">
-                  Market Pulse
-                </h3>
-                <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              </div>
+              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-6">
+                Market Pulse
+              </h3>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl font-black italic">
@@ -203,16 +205,13 @@ export default function MaliyyahDashboard() {
                     <p className="text-sm font-black text-slate-800">
                       Bitcoin (BTC)
                     </p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                      Crypto Currency
-                    </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-slate-800">
                     RM 278,742.88
                   </p>
-                  <p className="text-[10px] text-emerald-500 font-bold tracking-widest">
+                  <p className="text-[10px] text-emerald-500 font-bold">
                     + 2.4%
                   </p>
                 </div>
