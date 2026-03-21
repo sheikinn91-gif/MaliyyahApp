@@ -60,7 +60,16 @@ export function ZakatDistributionChart() {
                 verticalAlign="bottom"
                 align="center"
                 iconType="circle"
-                wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }}
+                layout="horizontal"
+                iconSize={10}
+                wrapperStyle={{
+                  paddingTop: "20px",
+                  fontSize: "11px",
+                  display: "flex",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
