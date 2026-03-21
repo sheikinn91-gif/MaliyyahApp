@@ -59,7 +59,7 @@ const Dashboard = () => {
   const [market, setMarket] = useState<MarketData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
-  const [recentHistory, setRecentHistory] = useState([]);
+  const [recentHistory, setRecentHistory] = useState<any[]>([]);
   const [summary, setSummary] = useState({
     total_keseluruhan: 0,
     pendapatan: 0,
@@ -68,14 +68,20 @@ const Dashboard = () => {
     logam: 0,
   });
 
-  // LOGIK PEMBETULAN 1: Banner Hijau mengikut Database
-  const totalKeseluruhan =
-    summary.total_keseluruhan > 0
-      ? summary.total_keseluruhan
-      : (Number(zakatResults.pendapatan) || 0) +
-        (Number(zakatResults.kripto) || 0) +
-        (Number(zakatResults.harta) || 0) +
-        (Number(zakatResults.logam) || 0);
+  // PEMBETULAN: Banner Hijau sentiasa ambil total dari summary database
+  const totalKeseluruhan = summary.total_keseluruhan || 0;
+
+  // FUNGSI BARU: Mengira jumlah spesifik mengikut kategori dari sejarah transaksi
+  const getCategoryTotal = (kategori: string) => {
+    return recentHistory
+      .filter(
+        (item: any) => item.kategori.toUpperCase() === kategori.toUpperCase(),
+      )
+      .reduce(
+        (sum: number, item: any) => sum + (Number(item.total_zakat) || 0),
+        0,
+      );
+  };
 
   const refreshData = async () => {
     const token = localStorage.getItem("maliyyah_token");
@@ -134,6 +140,7 @@ const Dashboard = () => {
           harta: 0,
           logam: 0,
         });
+        setRecentHistory([]);
         toast.success("Rekod dipadam!");
         refreshData();
       }
@@ -203,35 +210,35 @@ const Dashboard = () => {
     }).format(val || 0);
   };
 
-  // LOGIK PEMBETULAN 2: Kad statistik mengikut Database (Summary)
+  // PEMBETULAN: Kad statistik kini mengira nilai unik mengikut kategori sahaja
   const stats = [
     {
       title: "Zakat Pendapatan",
-      amount:
-        summary.pendapatan > 0
-          ? summary.pendapatan
-          : zakatResults.pendapatan || 0,
+      amount: getCategoryTotal("PENDAPATAN"),
       icon: Briefcase,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
       title: "Zakat Kripto",
-      amount: summary.kripto > 0 ? summary.kripto : zakatResults.kripto,
+      amount: getCategoryTotal("KRIPTO"),
       icon: TrendingUp,
       color: "text-purple-600",
       bg: "bg-purple-50",
     },
     {
       title: "Zakat Harta",
-      amount: summary.harta > 0 ? summary.harta : zakatResults.harta,
+      amount: getCategoryTotal("HARTA"),
       icon: Wallet,
       color: "text-orange-600",
       bg: "bg-orange-50",
     },
     {
       title: "Zakat Logam/Emas",
-      amount: summary.logam > 0 ? summary.logam : zakatResults.logam,
+      amount:
+        getCategoryTotal("LOGAM/EMAS") ||
+        getCategoryTotal("LOGAM") ||
+        getCategoryTotal("EMAS"),
       icon: PieChart,
       color: "text-yellow-600",
       bg: "bg-yellow-50",
