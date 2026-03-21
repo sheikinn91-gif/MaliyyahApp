@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import PaymentModal from "@/components/Context/PaymentModal";
 import AIChatBot from "@/components/Context/AIChatBot";
 import { ZakatDistributionChart } from "@/components/Context/ZakatDistributionChart";
-import DidikZakatWidget from "./ZakatFacts"; // Pastikan path ini betul
+import DidikZakatWidget from "./ZakatFacts";
 
 import {
   Card,
@@ -36,6 +36,7 @@ import {
   Bitcoin,
   History,
   RotateCcw,
+  FileText,
 } from "lucide-react";
 
 interface MarketData {
@@ -45,8 +46,14 @@ interface MarketData {
 }
 
 const Dashboard = () => {
-  const { userName, occupation, location, zakatResults, isPrivacyMode } =
-    useZakat();
+  const {
+    userName,
+    occupation,
+    location,
+    zakatResults,
+    isPrivacyMode,
+    resetZakatResults,
+  } = useZakat();
   const navigate = useNavigate();
 
   const [market, setMarket] = useState<MarketData | null>(null);
@@ -60,6 +67,7 @@ const Dashboard = () => {
     harta: 0,
     logam: 0,
   });
+
   const totalKeseluruhan =
     (zakatResults.pendapatan || 0) +
     (zakatResults.kripto || 0) +
@@ -68,7 +76,7 @@ const Dashboard = () => {
 
   const refreshData = async () => {
     const token = localStorage.getItem("maliyyah_token");
-    const apiUrl = import.meta.env.VITE_API_URL; //|| "http://127.0.0.1:8000";
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     if (!token) {
       setRecentHistory([]);
@@ -108,21 +116,68 @@ const Dashboard = () => {
       return;
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL; //|| "http://127.0.0.1:8000";
+      const apiUrl = import.meta.env.VITE_API_URL;
       const res = await fetch(`${apiUrl}/api/history`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
-        // --- TAMBAH BARIS INI ---
-        resetZakatResults(); // Ini yang akan tukar Banner Hijau jadi RM 0
+        resetZakatResults();
         toast.success("Rekod dipadam!");
         refreshData();
       }
     } catch (error) {
       toast.error("Ralat sambungan.");
     }
+  };
+
+  const handleDownloadPDF = (item: any) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow)
+      return toast.error("Sila benarkan pop-up untuk muat turun.");
+
+    const tarikh = new Date(item.created_at).toLocaleDateString("ms-MY", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Penyata Zakat Maliyyah - ${item.id}</title>
+          <style>
+            body { font-family: 'Helvetica', sans-serif; padding: 50px; color: #334155; }
+            .header { text-align: center; border-bottom: 2px solid #10b981; padding-bottom: 20px; }
+            .logo { color: #10b981; font-size: 28px; font-weight: 900; }
+            .content { margin-top: 30px; line-height: 1.6; }
+            .footer { margin-top: 50px; font-size: 12px; color: #94a3b8; text-align: center; }
+            .amount { font-size: 24px; font-weight: bold; color: #059669; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">MALIYYAH</div>
+            <p>Penyata Rasmi Pengiraan Zakat</p>
+          </div>
+          <div class="content">
+            <p><strong>Nama Pengguna:</strong> ${userName}</p>
+            <p><strong>Tarikh Transaksi:</strong> ${tarikh}</p>
+            <p><strong>Kategori Zakat:</strong> ${item.kategori}</p>
+            <hr />
+            <p>Jumlah Zakat Yang Telah Dikira:</p>
+            <p class="amount">RM ${item.total_zakat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            <p><em>Status: Rekod telah disimpan dalam sistem Maliyyah.</em></p>
+          </div>
+          <div class="footer">
+            Dokumen ini dijana secara automatik oleh Maliyyah Zakat Engine pada ${new Date().toLocaleString()}.
+          </div>
+          <script>window.onload = function() { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   useEffect(() => {
@@ -138,7 +193,6 @@ const Dashboard = () => {
     }).format(val);
   };
 
-  // Stats mapping untuk kad-kad kecil
   const stats = [
     {
       title: "Zakat Pendapatan",
@@ -169,7 +223,6 @@ const Dashboard = () => {
       bg: "bg-yellow-50",
     },
   ];
-  const { resetZakatResults } = useZakat();
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-6 pt-6 bg-slate-50/30">
@@ -180,7 +233,7 @@ const Dashboard = () => {
             Dashboard Maliyyah
           </h2>
           <div className="flex flex-wrap items-center gap-4 mt-1 text-slate-500 text-sm font-medium">
-            <span className="text-emerald-600 font-bold italic">
+            <span className="text-emerald-700 font-bold italic">
               Assalamu'alaikum, {userName}
             </span>
             <span className="flex items-center gap-1">
@@ -267,9 +320,8 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* 4. MAIN CONTENT GRID (SPLIT 4:3) */}
+      {/* 4. MAIN CONTENT GRID */}
       <div className="grid gap-6 lg:grid-cols-7">
-        {/* LEFT COLUMN: HISTORY & CHART */}
         <div className="lg:col-span-4 space-y-6">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-md font-bold text-slate-800 flex items-center gap-2">
@@ -293,10 +345,10 @@ const Dashboard = () => {
                     Tarikh
                   </TableHead>
                   <TableHead className="text-[10px] font-bold uppercase">
-                    Kategori
+                    Butiran Zakat
                   </TableHead>
                   <TableHead className="text-right pr-6 text-[10px] font-bold uppercase">
-                    Jumlah
+                    Tindakan
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -314,18 +366,32 @@ const Dashboard = () => {
                   recentHistory.map((item: any) => (
                     <TableRow
                       key={item.id}
-                      className="hover:bg-slate-50/50 transition-colors"
+                      className="hover:bg-slate-50/50 transition-colors group"
                     >
                       <TableCell className="pl-6 text-sm text-slate-600">
                         {new Date(item.created_at).toLocaleDateString("ms-MY")}
                       </TableCell>
                       <TableCell>
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase">
-                          {item.kategori}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-black uppercase w-fit">
+                            {item.kategori}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900 mt-1">
+                            {formatValue(item.total_zakat)}
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell className="text-right pr-6 font-bold text-emerald-600">
-                        {formatValue(item.total_zakat)}
+                      <TableCell className="text-right pr-6">
+                        <button
+                          onClick={() => handleDownloadPDF(item)}
+                          className="inline-flex items-center gap-2 p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-90"
+                          title="Muat Turun PDF"
+                        >
+                          <FileText size={16} />
+                          <span className="text-[10px] font-bold hidden md:inline">
+                            PDF
+                          </span>
+                        </button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -337,12 +403,8 @@ const Dashboard = () => {
           <ZakatDistributionChart />
         </div>
 
-        {/* RIGHT COLUMN: SIDEBAR WIDGETS */}
         <div className="lg:col-span-3 space-y-6">
-          {/* WIDGET 1: DIDIK ZAKAT (DAILY FACTS) */}
           <DidikZakatWidget />
-
-          {/* WIDGET 2: MARKET PULSE */}
           <div className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
             <div className="flex items-center justify-between px-1">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
@@ -375,8 +437,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* WIDGET 3: LOCATION IMPACT */}
           <Card className="border-none shadow-sm bg-slate-900 text-white rounded-[2rem] overflow-hidden">
             <CardContent className="p-8 space-y-4 text-center relative">
               <MapPin className="mx-auto text-emerald-500 h-8 w-8" />
@@ -402,7 +462,6 @@ const Dashboard = () => {
           toast.success("Pembayaran sedang diproses!");
         }}
       />
-
       <AIChatBot />
     </div>
   );
