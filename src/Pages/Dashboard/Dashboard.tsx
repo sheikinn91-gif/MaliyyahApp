@@ -41,12 +41,6 @@ export default function Dashboard() {
     fetchHistory();
   }, []);
 
-  const handlePayNow = () => {
-    // Contoh: Buka portal zakat atau scroll ke kalkulator
-    window.open("https://app.zakat.com.my", "_blank");
-    toast.success("Membuka portal bayaran...");
-  };
-
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
   const handleReset = async () => {
     if (!confirm("Padam semua sejarah aktiviti?")) return;
@@ -115,7 +109,11 @@ export default function Dashboard() {
       bg: "bg-yellow-50",
     },
   ];
-
+  const handlePayNow = () => {
+    // Anda boleh ganti URL ini dengan portal zakat pilihan anda
+    window.open("https://zakat.sabah.gov.my/", "_blank");
+    toast.success("Membuka Portal Zakat Sabah...");
+  };
   return (
     <div className="p-6 space-y-8 bg-slate-50 min-h-screen text-slate-900">
       {/* BANNER HIJAU */}
