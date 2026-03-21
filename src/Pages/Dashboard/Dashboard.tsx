@@ -24,6 +24,7 @@ export default function MaliyyahDashboard() {
   const [zakatHarta, setZakatHarta] = useState<number>(0);
   const [zakatEmas, setZakatEmas] = useState<number>(0);
   const [history, setHistory] = useState<any[]>([]);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
 
   // 2. FUNGSI PENARIK DATA (Magnet)
   useEffect(() => {
@@ -87,26 +88,11 @@ export default function MaliyyahDashboard() {
             </div>
             <Button
               onClick={() => {
-                // 1. Ambil nilai terkini dari state Dashboard
                 if (totalZakat <= 0) {
                   toast.error("Tiada jumlah zakat untuk dibayar.");
                   return;
                 }
-
-                // 2. Logik Pilihan Pembayaran
-                // Anda boleh pilih satu: Tab Baru (Portal Zakat) atau Modal (Pop-up)
-
-                const confirmPay = window.confirm(
-                  `Anda akan membuat bayaran Zakat berjumlah RM ${totalZakat.toLocaleString(undefined, { minimumFractionDigits: 2 })}. Teruskan ke portal pembayaran?`,
-                );
-
-                if (confirmPay) {
-                  // Opsyen A: Terus ke Portal Rasmi (Contoh: Zakat Selangor/MUIS)
-                  window.open("https://fpx.zakat.com.my/", "_blank");
-
-                  // Opsyen B: Jika anda mahu simulasi "Success" untuk demo:
-                  // toast.success("Menghubungkan ke gerbang pembayaran FPX...");
-                }
+                setIsPayModalOpen(true); // Ini akan buka modal
               }}
               className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95"
             >
@@ -296,6 +282,88 @@ export default function MaliyyahDashboard() {
           </div>
         </div>
       </div>
-    </div>
+      {/* Kod Modal Start */}
+      {isPayModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            {/* Header Modal */}
+            <div className="p-8 flex justify-between items-center border-b border-slate-50">
+              <h2 className="text-2xl font-black text-slate-800">
+                Pilih Cara Bayaran
+              </h2>
+              <button
+                onClick={() => setIsPayModalOpen(false)}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+              >
+                <RotateCcw size={20} className="rotate-45 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              {/* Jumlah Ringgit */}
+              <div className="bg-emerald-50/50 rounded-3xl p-8 text-center border border-emerald-100">
+                <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">
+                  Jumlah Zakat
+                </p>
+                <h1 className="text-4xl font-black text-emerald-600">
+                  RM{" "}
+                  {totalZakat.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                  })}
+                </h1>
+              </div>
+
+              {/* Pilihan: MUIS */}
+              <button
+                onClick={() =>
+                  window.open("https://fpx.zakat.com.my/", "_blank")
+                }
+                className="w-full flex items-center gap-4 p-5 rounded-[1.5rem] border-2 border-emerald-500 bg-emerald-50/30 hover:bg-emerald-100/50 transition-all text-left"
+              >
+                <div className="p-3 bg-emerald-500 text-white rounded-xl">
+                  <ExternalLink size={20} />
+                </div>
+                <div>
+                  <p className="font-black text-slate-800">Portal Rasmi MUIS</p>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Bayar terus via FPX (Sabah)
+                  </p>
+                </div>
+              </button>
+
+              {/* Pilihan: JomPAY */}
+              <div className="w-full flex items-center justify-between p-5 rounded-[1.5rem] border border-slate-100 bg-white shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <CreditCard size={20} />
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-800">JomPAY</p>
+                    <p className="text-xs text-slate-400">
+                      Biller Code:{" "}
+                      <span className="text-blue-600 font-bold">55236</span>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText("55236");
+                    toast.success("Biller Code disalin!");
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-4 py-2 rounded-lg uppercase transition-colors"
+                >
+                  Salin
+                </button>
+              </div>
+
+              <p className="text-[10px] text-center text-slate-400 font-bold px-6 italic">
+                Resit rasmi akan dihantar ke emel anda selepas pengesahan bank.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Kod Modal End */}
+    </div> // Penutup <main> atau container utama dalam Dashboard
   );
 }
