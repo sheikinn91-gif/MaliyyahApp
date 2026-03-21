@@ -117,6 +117,9 @@ export default function Zakat() {
   const [hasSpouse, setHasSpouse] = useState<boolean>(false);
   const [childrenCount, setChildrenCount] = useState<number>(0);
   const [incomeZakatResult, setIncomeZakatResult] = useState<number>(0);
+  const [kwsp, setKwsp] = useState<number>(0); // 11% biasanya
+  const [parents, setParents] = useState<number>(0); // Pemberian ibu bapa
+  const [education, setEducation] = useState<number>(0); // Yuran belajar
 
   const [cryptoBalance, setCryptoBalance] = useState<number>(0);
   const [goldWeight, setGoldWeight] = useState<number>(0);
@@ -155,36 +158,63 @@ export default function Zakat() {
   const nisabSemasa = livePrices.gold * 85;
 
   // Logik Pengiraan Pendapatan
-  const calculateIncomeZakat = useCallback(async () => {
-    if (salary <= 0 && bonus <= 0) {
+  // --- 1. LOGIK PENGIRAAN PENDAPATAN DENGAN HAD KIFAYAH ---
+  const calculateIncomeZakat = useCallback(() => {
+    // Bonus dibahagi 12 untuk pengiraan bulanan yang adil
+    const totalMonthlyIncome = salary + bonus / 12;
+
+    if (totalMonthlyIncome <= 0) {
       setIncomeZakatResult(0);
       return;
     }
-    try {
-      const response = await fetch(`${apiUrl}/api/calculate-income-zakat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          monthly_salary: salary,
-          other_income: bonus,
-          has_spouse: hasSpouse,
-          children_count: childrenCount,
-        }),
-      });
-      const data = await response.json();
-      setIncomeZakatResult(data.monthly_zakat || 0);
-    } catch (error) {
-      const totalYearly = salary * 12 + bonus;
-      setIncomeZakatResult(
-        totalYearly >= nisabSemasa ? (totalYearly * 0.025) / 12 : 0,
-      );
-    }
-  }, [salary, bonus, hasSpouse, childrenCount, nisabSemasa, apiUrl]);
 
+    // --- KADAR HAD KIFAYAH (Standard Bulanan) ---
+    const HAD_KIFAYAH = {
+      DIRI: 1000,
+      ISTERI: 500,
+      ANAK: 250,
+    };
+
+    // 1. Kira Had Kifayah Asas berdasarkan tanggungan
+    let pelepasanAsas = HAD_KIFAYAH.DIRI;
+    if (hasSpouse) pelepasanAsas += HAD_KIFAYAH.ISTERI;
+    pelepasanAsas += childrenCount * HAD_KIFAYAH.ANAK;
+
+    // 2. Auto-Calculate KWSP 11% daripada Gaji Pokok (Boleh diubah manual kemudian)
+    // Jika anda mahu pengguna isi sendiri, biarkan nilai kwsp dari state
+    const kwspDeduction = kwsp > 0 ? kwsp : salary * 0.11;
+
+    // 3. Kira Pelepasan Tambahan (KWSP + Ibu Bapa + Pendidikan)
+    const pelepasanTambahan = kwspDeduction + parents + education;
+
+    // 4. Pendapatan Bersih (Tolak semua pelepasan)
+    const bakiPendapatan =
+      totalMonthlyIncome - pelepasanAsas - pelepasanTambahan;
+
+    // 5. Semakan Nisab (Nisab Semasa dibahagi 12)
+    const nisabBulanan = nisabSemasa / 12;
+
+    // SYARAT: Wajib Zakat jika Gaji Kasar > Nisab DAN ada baki selepas Had Kifayah
+    if (totalMonthlyIncome >= nisabBulanan && bakiPendapatan > 0) {
+      setIncomeZakatResult(bakiPendapatan * 0.025);
+    } else {
+      setIncomeZakatResult(0);
+    }
+  }, [
+    salary,
+    bonus,
+    hasSpouse,
+    childrenCount,
+    kwsp,
+    parents,
+    education,
+    nisabSemasa,
+  ]);
+
+  // Panggil fungsi pengiraan setiap kali input berubah
   useEffect(() => {
     calculateIncomeZakat();
   }, [calculateIncomeZakat]);
-
   // Logik Zakat
   const cryptoZakat = () =>
     cryptoBalance * livePrices.btc >= nisabSemasa
