@@ -152,9 +152,16 @@ async def signup(req: SignupRequest, db: Session = Depends(get_db)):
     return {"message": "Akaun berjaya dicipta"}
 
 # --- MARKET DATA ---
+
 @app.get("/api/live-market")
 async def get_live_market():
-    return {"btc": 295000.0, "gold_gram": 385.50, "silver_gram": 4.60}
+    # Nota: Anda boleh integrasikan API sebenar di sini nanti.
+    # Buat masa ini, kita hantar harga "Live" yang terkini untuk demo.
+    return {
+        "btc": 358420.50,       # Harga BTC (RM)
+        "gold_gram": 571.85,    # Harga Emas (RM/g)
+        "silver_gram": 5.25     # Harga Perak (RM/g)
+    }
 
 # --- ZAKAT CORE LOGIC ---
 
