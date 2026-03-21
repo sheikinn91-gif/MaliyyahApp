@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Clock,
@@ -16,39 +16,33 @@ import {
 } from "lucide-react";
 
 export default function MaliyyahDashboard() {
-  // 1. DATA BERMULA DENGAN 0 - BERSIH & SUCI BILA LOG IN
-  const [totalZakat, setTotalZakat] = useState(0);
-  const [zakatPendapatan, setZakatPendapatan] = useState(0);
-  const [zakatKripto, setZakatKripto] = useState(0);
-  const [zakatHarta, setZakatHarta] = useState(0);
-  const [zakatEmas, setZakatEmas] = useState(0);
+  // 1. STATE BERMULA DENGAN 0 - UNTUK PAPARAN RM 0.00 BILA LOGIN
+  const [totalZakat, setTotalZakat] = useState<number>(0);
+  const [zakatPendapatan, setZakatPendapatan] = useState<number>(0);
+  const [zakatKripto, setZakatKripto] = useState<number>(0);
+  const [zakatHarta, setZakatHarta] = useState<number>(0);
+  const [zakatEmas, setZakatEmas] = useState<number>(0);
 
-  // Array sejarah kosong secara default
+  // 2. FIX RALAT 'NEVER' - Beritahu TypeScript ini adalah array objek
   const [history, setHistory] = useState<any[]>([]);
 
-  // 2. FUNGSI TOTALLY RESET - TEKAN SAJA, SEMUA JADI 0 BALIK
-  const handleResetAll = () => {
-    if (
-      window.confirm(
-        "Adakah anda pasti untuk mengosongkan semua data dan kembali ke RM 0.00?",
-      )
-    ) {
-      setTotalZakat(0);
-      setZakatPendapatan(0);
-      setZakatKripto(0);
-      setZakatHarta(0);
-      setZakatEmas(0);
-      setHistory([]);
-      alert("Semua data telah dikosongkan (Totally Reset).");
-    }
+  // 3. FUNGSI RESET YANG AKAN MEMAKSA SEMUA JADI 0
+  const handleResetData = () => {
+    setTotalZakat(0);
+    setZakatPendapatan(0);
+    setZakatKripto(0);
+    setZakatHarta(0);
+    setZakatEmas(0);
+    setHistory([]);
+    console.log("Semua element telah di-reset ke RM 0.00");
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800 font-sans">
+    <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* BANNER HIJAU (EMERALD) */}
         <div className="bg-[#006747] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="space-y-2">
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
                 RM{" "}
@@ -56,13 +50,13 @@ export default function MaliyyahDashboard() {
                   minimumFractionDigits: 2,
                 })}
               </h1>
-              <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase">
+              <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">
                 Status:{" "}
                 {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}{" "}
                 <ExternalLink size={12} />
               </div>
             </div>
-            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95">
+            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 uppercase">
               Bayar Sekarang <CreditCard size={20} />
             </Button>
           </div>
@@ -71,7 +65,7 @@ export default function MaliyyahDashboard() {
           </div>
         </div>
 
-        {/* 4 KAD ZAKAT (RM 0.00) */}
+        {/* 4 KAD ZAKAT (DYNAMIK) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -120,15 +114,15 @@ export default function MaliyyahDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* AKTIVITI TERKINI */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center px-2">
               <h3 className="font-bold flex items-center gap-2 text-slate-700">
                 <Clock size={18} /> Aktiviti Terkini
               </h3>
+              {/* BUTANG RESET DATA UTAMA */}
               <button
-                onClick={handleResetAll}
-                className="text-[10px] font-black text-slate-400 hover:text-red-500 flex items-center gap-1 transition-all cursor-pointer uppercase tracking-widest p-2"
+                onClick={handleResetData}
+                className="text-[10px] font-black text-slate-400 hover:text-red-500 flex items-center gap-1 p-2 uppercase tracking-widest cursor-pointer"
               >
                 <RotateCcw size={12} /> Reset Data
               </button>
@@ -150,13 +144,13 @@ export default function MaliyyahDashboard() {
                         <td className="px-6 py-4 text-sm text-slate-500 italic">
                           {row.tarikh}
                         </td>
-                        <td className="px-6 py-4 font-black">
+                        <td className="px-6 py-4 font-black text-slate-800">
                           RM {row.jumlah.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => window.print()}
-                            className="text-blue-500 font-black text-[10px] bg-blue-50 px-3 py-1.5 rounded-lg"
+                            className="text-blue-500 font-black text-[10px] bg-blue-50 px-3 py-1.5 rounded-lg uppercase tracking-widest"
                           >
                             <FileText size={14} /> PDF
                           </button>
@@ -178,7 +172,6 @@ export default function MaliyyahDashboard() {
             </div>
           </div>
 
-          {/* SIDEBAR WIDGETS */}
           <div className="space-y-6">
             <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
               <div className="flex items-center gap-2 text-emerald-600 font-bold mb-4">
@@ -188,7 +181,7 @@ export default function MaliyyahDashboard() {
                 <h3>Didik Zakat</h3>
               </div>
               <p className="text-xs text-slate-500 italic">
-                "Penyucian harta bermula dengan zakat yang tepat."
+                "Zakat menyucikan harta."
               </p>
             </Card>
 
@@ -201,20 +194,13 @@ export default function MaliyyahDashboard() {
                   <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl font-black italic">
                     B
                   </div>
-                  <div>
-                    <p className="text-sm font-black text-slate-800">
-                      Bitcoin (BTC)
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
                   <p className="text-sm font-black text-slate-800">
-                    RM 278,742.88
-                  </p>
-                  <p className="text-[10px] text-emerald-500 font-bold">
-                    + 2.4%
+                    Bitcoin (BTC)
                   </p>
                 </div>
+                <p className="text-sm font-black text-slate-800">
+                  RM 278,742.88
+                </p>
               </div>
             </Card>
           </div>
