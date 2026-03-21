@@ -130,12 +130,11 @@ export default function Zakat() {
   // --- FUNGSI SUBMIT KE DASHBOARD & API ---
   const handleFinalSubmit = async () => {
     const totalValue = grandTotal();
-    if (totalValue <= 0) {
-      toast.error("Tiada jumlah zakat untuk direkodkan.");
-      return;
-    }
 
-    // 1. SIAPKAN PAYLOAD
+    // 1. DEKLARASI DI SINI (SEKALI SAHAJA)
+    const token = localStorage.getItem("maliyyah_token");
+    const savedUser = localStorage.getItem("maliyyah_user");
+
     const payload = {
       total: Number(totalValue.toFixed(2)),
       pendapatan: Number(incomeZakatResult.toFixed(2)),
@@ -144,32 +143,30 @@ export default function Zakat() {
       logam: Number((goldZakat() + silverZakat()).toFixed(2)),
     };
 
-    // 2. SIMPAN KE LOCALSTORAGE (GAM UNTUK DASHBOARD)
     localStorage.setItem("maliyyah_zakat_data", JSON.stringify(payload));
 
-    // 3. HANTAR KE BACKEND (OPSYENAL)
-    const token = localStorage.getItem("maliyyah_token");
-    try {
-      await fetch(`${apiUrl}/api/calculate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      (setZakatResults as any)(payload);
-      toast.success("Data disimpan! Pindah ke Dashboard...");
-
-      // Auto-pindah ke dashboard selepas 1.5 saat
-      setTimeout(() => navigate("/dashboard"), 1500);
-    } catch (error) {
-      console.error("Ralat API, tetapi data lokal tetap disimpan.");
-      navigate("/dashboard");
+    // 2. GUNA SAHAJA, JANGAN DEKLARASI LAGI
+    if (token) {
+      try {
+        // Di sini JANGAN tulis 'const token' lagi. Terus guna 'token'.
+        await fetch(`${apiUrl}/api/calculate`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Guna token yang di atas tadi
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch (error) {
+        console.error("API Error");
+      }
     }
-  };
 
+    // 3. NAVIGASI
+    setTimeout(() => {
+      window.location.href = "/dashboard";
+    }, 1000);
+  };
   return (
     <div className="w-full min-h-screen bg-slate-50/50 p-4 lg:p-8 pb-24 text-slate-900">
       <div className="max-w-7xl mx-auto space-y-8">
