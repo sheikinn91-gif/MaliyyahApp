@@ -183,7 +183,7 @@ export default function Dashboard() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-[9px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md font-black uppercase mb-1 inline-block">
-                          {item.kategori === "PENDAPATAN"
+                          {item.kategori?.toUpperCase() === "PENDAPATAN"
                             ? "JUMLAH ZAKAT"
                             : item.kategori}
                         </span>
