@@ -69,10 +69,12 @@ const Dashboard = () => {
   });
 
   const totalKeseluruhan =
-    (zakatResults.pendapatan || 0) +
-    (zakatResults.kripto || 0) +
-    (zakatResults.harta || 0) +
-    (zakatResults.logam || 0);
+    summary.total_keseluruhan > 0
+      ? summary.total_keseluruhan
+      : (zakatResults.pendapatan || 0) +
+        (zakatResults.kripto || 0) +
+        (zakatResults.harta || 0) +
+        (zakatResults.logam || 0);
 
   const refreshData = async () => {
     const token = localStorage.getItem("maliyyah_token");
