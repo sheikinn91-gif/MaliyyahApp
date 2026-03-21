@@ -39,22 +39,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, []); // 2. FUNGSI RESET DATA (Frontend Sahaja)
 
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
   const handleReset = () => {
-    // 1. Padam punca data dalam browser
-    localStorage.removeItem("zakat_history");
-    localStorage.clear(); // Untuk kepastian, padam semua simpanan
-
-    // 2. Kosongkan state history supaya senarai hilang di skrin
-    if (typeof setHistory === "function") {
-      setHistory([]);
-    }
-
-    // 3. Baru reload untuk 'reset' segalanya ke kosong
-    window.location.reload();
-    toast.success("Semua data sejarah telah dipadam.");
+    window.location.reload(); // Cara paling cepat untuk reset state semasa
+    toast.success("Data paparan telah direset.");
   };
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
   const downloadPDF = (id: string) => {
