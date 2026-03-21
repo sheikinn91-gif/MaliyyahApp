@@ -97,7 +97,10 @@ app = FastAPI(title="Maliyyah API - Sabah Region")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Membenarkan akses dari Vercel/Mana-mana origin
+    allow_origins=[
+        "https://maliyyah-app.vercel.app", # URL Frontend anda
+        "http://localhost:3000"           # Untuk pembangunan lokal
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
