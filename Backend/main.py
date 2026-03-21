@@ -259,7 +259,7 @@ async def get_history(limit: int = 15, db: Session = Depends(get_db)):
 @app.delete("/api/history")
 async def reset_history(db: Session = Depends(get_db)):
     try:
-        db.query(ZakatHistory).delete()
+        db.query(ZakatHistory).delete(synchronize_session=False)
         db.commit()
         return {"message": "Database berjaya dikosongkan"}
     except Exception as e:

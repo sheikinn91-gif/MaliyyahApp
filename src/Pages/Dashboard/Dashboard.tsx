@@ -42,9 +42,39 @@ export default function Dashboard() {
   }, []); // 2. FUNGSI RESET DATA (Frontend Sahaja)
 
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
-  const handleReset = () => {
-    window.location.reload(); // Cara paling cepat untuk reset state semasa
-    toast.success("Data paparan telah direset.");
+  const handleReset = async () => {
+    // 1. Minta pengesahan daripada pengguna
+    if (
+      !confirm("Adakah anda pasti mahu memadam semua rekod Aktiviti Terkini?")
+    )
+      return;
+
+    try {
+      // 2. Panggil API Backend yang anda buat tadi
+      const response = await fetch("http://localhost:8000/api/history", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          // Jika perlukan token: "Authorization": `Bearer ${localStorage.getItem("maliyyah_token")}`
+        },
+      });
+
+      if (response.ok) {
+        // 3. KOSONGKAN STATE: Ini kunci utama supaya senarai terus hilang dari skrin
+        setHistory([]);
+
+        // 4. Paparkan mesej berjaya
+        toast.success("Semua rekod aktiviti telah dipadam.");
+
+        // 5. Reload untuk pastikan Banner Hijau juga kembali ke RM 0.00
+        window.location.reload();
+      } else {
+        toast.error("Gagal memadam rekod di server.");
+      }
+    } catch (error) {
+      console.error("Ralat semasa reset:", error);
+      toast.error("Ralat sambungan ke server.");
+    }
   };
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
   const downloadPDF = (id: string) => {
