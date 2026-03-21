@@ -39,39 +39,36 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchHistory();
-  }, []); // 2. FUNGSI RESET DATA (Frontend Sahaja)
+  }, []);
 
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
   const handleReset = async () => {
-    if (!confirm("Adakah anda pasti mahu memadam semua rekod?")) return;
+    if (!confirm("Padam semua sejarah aktiviti?")) return;
 
     try {
-      // Pastikan port 8000 (standard FastAPI) atau port yang anda guna di terminal
-      const BACKEND_URL = "https://maliyyah-api-anda.onrender.com";
-      const response = await fetch(`${BACKEND_URL}/api/history`, {
+      // Logik Automatik:
+      // Jika buka di Vercel, ia guna URL Render. Jika buka di Laptop, ia guna Localhost.
+      const isProduction = window.location.hostname !== "localhost";
+      const API_URL = isProduction
+        ? "https://maliyyahapp-1.onrender.com/api/history" // GANTI URL RENDER ANDA DI SINI
+        : "http://127.0.0.1:8000/api/history";
+
+      const response = await fetch(API_URL, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
-      const result = await response.json();
-
       if (response.ok) {
-        setHistory([]);
-        toast.success("Rekod berjaya dipadam dari server.");
+        setHistory([]); // Buang senarai di skrin serta-merta
+        toast.success("Rekod berjaya dipadam.");
 
-        // Beri sedikit masa sebelum reload
+        // Cara lama yang anda suka - kita kekalkan untuk 'refresh' total zakat
         setTimeout(() => {
           window.location.reload();
-        }, 800);
-      } else {
-        const errorData = await response.json();
-        toast.error(`Gagal: ${errorData.detail || "Ralat Server"}`);
+        }, 500);
       }
     } catch (error) {
-      console.error("Ralat sambungan:", error);
-      toast.error("Ralat: Tidak dapat menyambung ke server awan.");
+      console.error(error);
+      toast.error("Gagal reset. Pastikan server Backend anda aktif.");
     }
   };
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
