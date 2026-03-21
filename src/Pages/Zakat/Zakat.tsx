@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CheckCircle,
@@ -114,6 +114,10 @@ export default function Zakat() {
   // Input States
   const [salary, setSalary] = useState<number>(0);
   const [bonus, setBonus] = useState<number>(0);
+  const [hasSpouse, setHasSpouse] = useState<boolean>(false);
+  const [childrenCount, setChildrenCount] = useState<number>(0);
+  const [incomeZakatResult, setIncomeZakatResult] = useState<number>(0);
+
   const [cryptoBalance, setCryptoBalance] = useState<number>(0);
   const [goldWeight, setGoldWeight] = useState<number>(0);
   const [silverWeight, setSilverWeight] = useState<number>(0);
@@ -127,9 +131,10 @@ export default function Zakat() {
   const [livePrices, setLivePrices] = useState({ btc: 0, gold: 0, silver: 0 });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Ambil URL dari env
+  // URL API
   const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
+  // Fetch Market Prices
   useEffect(() => {
     const fetchPrices = async () => {
       try {
@@ -147,15 +152,41 @@ export default function Zakat() {
     fetchPrices();
   }, [apiUrl]);
 
-  // Logik Nisab Dinamik (85g Emas)
   const nisabSemasa = livePrices.gold * 85;
 
-  // Calculation Logic
-  const incomeZakat = () => {
-    const totalSetahun = (salary + bonus) * 12;
-    return totalSetahun >= nisabSemasa ? (totalSetahun * 0.025) / 12 : 0;
-  };
+  // Logik Pengiraan Pendapatan (Backend API)
+  const calculateIncomeZakat = useCallback(async () => {
+    if (salary <= 0 && bonus <= 0) {
+      setIncomeZakatResult(0);
+      return;
+    }
+    try {
+      const response = await fetch(`${apiUrl}/api/calculate-income-zakat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          monthly_salary: salary,
+          other_income: bonus,
+          has_spouse: hasSpouse,
+          children_count: childrenCount,
+        }),
+      });
+      const data = await response.json();
+      setIncomeZakatResult(data.monthly_zakat || 0);
+    } catch (error) {
+      // Simple fallback calculation
+      const totalYearly = salary * 12 + bonus;
+      setIncomeZakatResult(
+        totalYearly >= nisabSemasa ? (totalYearly * 0.025) / 12 : 0,
+      );
+    }
+  }, [salary, bonus, hasSpouse, childrenCount, nisabSemasa, apiUrl]);
 
+  useEffect(() => {
+    calculateIncomeZakat();
+  }, [calculateIncomeZakat]);
+
+  // Logik Zakat Kripto, Logam, & Harta (Client-side)
   const cryptoZakat = () => {
     const nilaiKripto = cryptoBalance * livePrices.btc;
     return nilaiKripto >= nisabSemasa ? nilaiKripto * 0.025 : 0;
@@ -164,24 +195,18 @@ export default function Zakat() {
   const goldZakat = () => {
     const NISAB_BERAT = 85;
     const URF_SABAH = 150;
-
     if (goldType === "simpanan") {
       return goldWeight >= NISAB_BERAT
         ? goldWeight * livePrices.gold * 0.025
         : 0;
-    } else {
-      return goldWeight > URF_SABAH
-        ? (goldWeight - URF_SABAH) * livePrices.gold * 0.025
-        : 0;
     }
-  };
-
-  const silverZakat = () => {
-    const NISAB_PERAK = 595;
-    return silverWeight >= NISAB_PERAK
-      ? silverWeight * livePrices.silver * 0.025
+    return goldWeight > URF_SABAH
+      ? (goldWeight - URF_SABAH) * livePrices.gold * 0.025
       : 0;
   };
+
+  const silverZakat = () =>
+    silverWeight >= 595 ? silverWeight * livePrices.silver * 0.025 : 0;
 
   const wealthZakat = () => {
     const total = savingsAmount + investmentAmount;
@@ -189,7 +214,11 @@ export default function Zakat() {
   };
 
   const grandTotal = () =>
-    incomeZakat() + goldZakat() + silverZakat() + cryptoZakat() + wealthZakat();
+    incomeZakatResult +
+    goldZakat() +
+    silverZakat() +
+    cryptoZakat() +
+    wealthZakat();
 
   // Submit to Backend
   const handleFinalSubmit = async () => {
@@ -201,7 +230,7 @@ export default function Zakat() {
     }
 
     const payload = {
-      pendapatan: Number(incomeZakat().toFixed(2)),
+      pendapatan: Number(incomeZakatResult.toFixed(2)),
       kripto: Number(cryptoZakat().toFixed(2)),
       harta: Number(wealthZakat().toFixed(2)),
       logam: Number((goldZakat() + silverZakat()).toFixed(2)),
@@ -237,7 +266,7 @@ export default function Zakat() {
   return (
     <div className="p-4 space-y-6 max-w-6xl mx-auto pb-20 text-slate-900">
       <header className="text-center space-y-2">
-        <h1 className="text-4xl font-black tracking-tighter">
+        <h1 className="text-4xl font-black tracking-tighter text-slate-900">
           Maliyyah Zakat Engine
         </h1>
         <div className="flex items-center justify-center gap-2 text-xs text-amber-600 font-bold bg-amber-50 w-fit mx-auto px-3 py-1 rounded-full border border-amber-100">
@@ -247,28 +276,55 @@ export default function Zakat() {
       </header>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Card Pendapatan */}
+        {/* Card Pendapatan (Updated) */}
         <Card className="border-blue-100 shadow-sm overflow-hidden">
           <CardHeader className="bg-blue-50/50">
             <CardTitle className="flex items-center gap-2 text-blue-700 font-bold">
-              <Banknote className="size-5" /> Pendapatan Bulanan
+              <Banknote className="size-5" /> Pendapatan (Had Kifayah)
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
-            <input
-              type="number"
-              placeholder="Gaji (RM)"
-              className="w-full p-3 border rounded-xl"
-              onChange={(e) => setSalary(Number(e.target.value))}
-            />
-            <input
-              type="number"
-              placeholder="Bonus (RM)"
-              className="w-full p-3 border rounded-xl"
-              onChange={(e) => setBonus(Number(e.target.value))}
-            />
-            <div className="p-3 bg-blue-600 rounded-xl text-white text-center font-bold">
-              RM {incomeZakat().toFixed(2)}
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="number"
+                placeholder="Gaji (RM)"
+                className="w-full p-3 border rounded-xl"
+                onChange={(e) => setSalary(Number(e.target.value))}
+              />
+              <input
+                type="number"
+                placeholder="Bonus (RM)"
+                className="w-full p-3 border rounded-xl"
+                onChange={(e) => setBonus(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  checked={hasSpouse}
+                  onChange={(e) => setHasSpouse(e.target.checked)}
+                />
+                Ada Pasangan
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-500 uppercase">
+                  Anak:
+                </span>
+                <input
+                  type="number"
+                  className="w-12 p-1 border rounded text-center text-sm font-bold"
+                  value={childrenCount}
+                  onChange={(e) => setChildrenCount(Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-blue-600 rounded-xl text-white text-center font-bold shadow-md">
+              RM {incomeZakatResult.toFixed(2)}{" "}
+              <span className="text-[10px] font-normal italic">/bulan</span>
             </div>
           </CardContent>
         </Card>
@@ -369,7 +425,7 @@ export default function Zakat() {
         <CardContent className="p-10 flex flex-col items-center gap-6">
           <div className="text-center">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Jumlah Zakat Wajib
+              Jumlah Zakat Wajib (Bulanan + Harta)
             </p>
             <h2 className="text-6xl font-black text-green-600">
               RM{" "}
@@ -380,7 +436,7 @@ export default function Zakat() {
           </div>
           <Button
             onClick={handleFinalSubmit}
-            className="px-12 py-8 bg-green-600 hover:bg-green-700 text-white rounded-full text-xl font-bold shadow-xl flex items-center gap-3"
+            className="px-12 py-8 bg-green-600 hover:bg-green-700 text-white rounded-full text-xl font-bold shadow-xl flex items-center gap-3 transition-transform hover:scale-105 active:scale-95"
           >
             <CheckCircle className="size-6" /> Tunaikan & Simpan
           </Button>
