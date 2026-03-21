@@ -141,7 +141,7 @@ export default function Zakat() {
           silver: data.silver_gram,
         });
       } catch (error) {
-        setLivePrices({ btc: 295000, gold: 385.5, silver: 4.6 });
+        setLivePrices({ btc: 278821, gold: 571.86, silver: 10.59 });
       }
     };
     fetchPrices();
