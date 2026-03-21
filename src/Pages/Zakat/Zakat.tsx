@@ -174,7 +174,6 @@ export default function Zakat() {
       const data = await response.json();
       setIncomeZakatResult(data.monthly_zakat || 0);
     } catch (error) {
-      // Simple fallback calculation
       const totalYearly = salary * 12 + bonus;
       setIncomeZakatResult(
         totalYearly >= nisabSemasa ? (totalYearly * 0.025) / 12 : 0,
@@ -220,7 +219,7 @@ export default function Zakat() {
     cryptoZakat() +
     wealthZakat();
 
-  // Submit to Backend
+  // --- HANDLE SUBMIT DENGAN PEMBETULAN TYPESCRIPT ---
   const handleFinalSubmit = async () => {
     const totalValue = grandTotal();
 
@@ -229,30 +228,58 @@ export default function Zakat() {
       return;
     }
 
-    const payload = {
-      pendapatan: Number(incomeZakatResult.toFixed(2)),
-      kripto: Number(cryptoZakat().toFixed(2)),
-      harta: Number(wealthZakat().toFixed(2)),
-      logam: Number((goldZakat() + silverZakat()).toFixed(2)),
-      total_zakat: Number(totalValue.toFixed(2)),
-    };
+    const token = localStorage.getItem("maliyyah_token");
+
+    // Bina array transaksi yang mempunyai nilai sahaja
+    const transactions = [
+      { kategori: "PENDAPATAN", amaun: Number(incomeZakatResult.toFixed(2)) },
+      { kategori: "KRIPTO", amaun: Number(cryptoZakat().toFixed(2)) },
+      { kategori: "HARTA", amaun: Number(wealthZakat().toFixed(2)) },
+      {
+        kategori: "LOGAM/EMAS",
+        amaun: Number((goldZakat() + silverZakat()).toFixed(2)),
+      },
+    ].filter((t) => t.amaun > 0);
 
     try {
-      const response = await fetch(`${apiUrl}/api/calculate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const promises = transactions.map((t) =>
+        fetch(`${apiUrl}/api/calculate`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            kategori: t.kategori,
+            total_zakat: t.amaun,
+            pendapatan: t.kategori === "PENDAPATAN" ? t.amaun : 0,
+            kripto: t.kategori === "KRIPTO" ? t.amaun : 0,
+            harta: t.kategori === "HARTA" ? t.amaun : 0,
+            logam: t.kategori === "LOGAM/EMAS" ? t.amaun : 0,
+          }),
+        }),
+      );
 
-      if (response.ok) {
-        setZakatResults(payload);
+      const responses = await Promise.all(promises);
+      const allSuccess = responses.every((r) => r.ok);
+
+      if (allSuccess) {
+        // PEMBETULAN: Hanya hantar property yang dikenali oleh Context
+        setZakatResults({
+          pendapatan: Number(incomeZakatResult.toFixed(2)),
+          kripto: Number(cryptoZakat().toFixed(2)),
+          harta: Number(wealthZakat().toFixed(2)),
+          logam: Number((goldZakat() + silverZakat()).toFixed(2)),
+          // total_zakat dibuang dari sini untuk elakkan ralat TS
+        });
+
         toast.success("Rekod zakat berjaya disimpan!");
         setIsModalOpen(true);
       } else {
-        toast.error("Gagal menyimpan rekod.");
+        toast.error("Gagal menyimpan beberapa rekod.");
       }
     } catch (error) {
-      toast.error("Ralat menghubungi pelayan.");
+      toast.error("Ralat sambungan pelayan.");
     }
   };
 
@@ -276,7 +303,7 @@ export default function Zakat() {
       </header>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Card Pendapatan (Updated) */}
+        {/* Card Pendapatan */}
         <Card className="border-blue-100 shadow-sm overflow-hidden">
           <CardHeader className="bg-blue-50/50">
             <CardTitle className="flex items-center gap-2 text-blue-700 font-bold">
@@ -298,7 +325,6 @@ export default function Zakat() {
                 onChange={(e) => setBonus(Number(e.target.value))}
               />
             </div>
-
             <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100">
               <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
                 <input
@@ -321,7 +347,6 @@ export default function Zakat() {
                 />
               </div>
             </div>
-
             <div className="p-3 bg-blue-600 rounded-xl text-white text-center font-bold shadow-md">
               RM {incomeZakatResult.toFixed(2)}{" "}
               <span className="text-[10px] font-normal italic">/bulan</span>
