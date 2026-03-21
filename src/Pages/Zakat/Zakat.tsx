@@ -298,243 +298,239 @@ export default function Zakat() {
     <div className="p-4 space-y-6 max-w-7xl mx-auto pb-20 text-slate-900">
       {/* HEADER SECTION */}
       <header className="text-center space-y-2 mb-10">
-        <h1 className="text-4xl font-black tracking-tighter">
+        <h1 className="text-4xl font-black tracking-tighter text-slate-800">
           Maliyyah Zakat Engine
         </h1>
         <div className="flex items-center justify-center gap-2 text-xs text-amber-600 font-bold bg-amber-50 w-fit mx-auto px-3 py-1 rounded-full border border-amber-100">
-          <Info size={14} /> Nisab: RM{" "}
-          {nisabSemasa.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          <Info size={14} /> Nisab Semasa: RM {nisabSemasa.toLocaleString()}
         </div>
       </header>
 
-      {/* KAD INDUK UTAMA (GRID 2 KOLUM) */}
-      <Card className="border-t-8 border-t-green-600 shadow-2xl overflow-hidden">
-        <CardContent className="p-6 md:p-10">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-            {/* KOLUM KIRI: SEMUA INPUT ZAKAT ASAL ANDA */}
-            <div className="lg:col-span-2 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 1. KAD PENDAPATAN (ASAL) */}
-                <Card className="border-blue-100 shadow-sm flex flex-col">
-                  <CardHeader className="bg-blue-50/50">
-                    <CardTitle className="flex items-center gap-2 text-blue-700 font-bold">
-                      <Banknote size={20} /> Input Pendapatan
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-4 flex-grow">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 text-center block">
-                          Gaji Hakiki
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="Contoh: 3500"
-                          className="p-3 border rounded-xl w-full mt-1 focus:ring-2 focus:ring-blue-400 outline-none transition-all"
-                          onChange={(e) => setSalary(Number(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 text-center block">
-                          Bonus/Lain-lain
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="Contoh: 1000"
-                          className="p-3 border rounded-xl w-full mt-1 focus:ring-2 focus:ring-blue-400 outline-none transition-all"
-                          onChange={(e) => setBonus(Number(e.target.value))}
-                        />
-                      </div>
-                    </div>
-                    <div className="mt-6">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-2 text-center">
-                        Zakat Pendapatan (Sebulan)
-                      </p>
-                      <div className="p-4 bg-blue-600 rounded-2xl text-white text-center shadow-lg shadow-blue-200">
-                        <span className="text-3xl font-black">
-                          RM{" "}
-                          {incomeZakatResult.toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 2. KAD PELEPASAN & HAD KIFAYAH (ASAL) */}
-                <Card className="border-emerald-100 shadow-sm flex flex-col">
-                  <CardHeader className="bg-emerald-50/50">
-                    <CardTitle className="flex items-center gap-2 text-emerald-700 font-bold">
-                      <CheckCircle2 size={20} /> Pelepasan & Had Kifayah
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">
-                          KWSP (11%)
-                        </label>
-                        <input
-                          type="number"
-                          placeholder={`RM ${(salary * 0.11).toFixed(0)}`}
-                          className="p-3 border rounded-xl w-full mt-1 bg-slate-50 focus:bg-white transition-all"
-                          onChange={(e) => setKwsp(Number(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">
-                          Ibu Bapa
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="RM"
-                          className="p-3 border rounded-xl w-full mt-1"
-                          onChange={(e) => setParents(Number(e.target.value))}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">
-                          Pendidikan
-                        </label>
-                        <input
-                          type="number"
-                          placeholder="RM"
-                          className="p-3 border rounded-xl w-full mt-1"
-                          onChange={(e) => setEducation(Number(e.target.value))}
-                        />
-                      </div>
-                    </div>
-                    <div className="p-4 bg-emerald-50 rounded-2xl border border-dashed border-emerald-200 mt-2">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-emerald-800 font-medium italic">
-                          Jumlah Had Kifayah:
-                        </span>
-                        <span className="font-black text-emerald-700 text-lg">
-                          RM{" "}
-                          {(
-                            1000 +
-                            (hasSpouse ? 500 : 0) +
-                            childrenCount * 250
-                          ).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 3. KAD KRIPTO (ASAL) */}
-                <Card className="border-orange-100 shadow-sm">
-                  <CardHeader className="bg-orange-50/50">
-                    <CardTitle className="flex items-center gap-2 text-orange-700 font-bold">
-                      <TrendingUp size={20} /> Kripto
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-4">
-                    <input
-                      type="number"
-                      placeholder="BTC / Value"
-                      className="p-3 border rounded-xl w-full"
-                      onChange={(e) => setCryptoBalance(Number(e.target.value))}
-                    />
-                    <div className="p-3 bg-orange-600 rounded-xl text-white text-center font-bold">
-                      RM {cryptoZakat().toFixed(2)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 4. KAD LOGAM (ASAL) */}
-                <Card className="border-yellow-100 shadow-sm">
-                  <CardHeader className="bg-yellow-50/50">
-                    <CardTitle className="flex items-center gap-2 text-yellow-700 font-bold">
-                      <Coins size={20} /> Logam
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <input
-                        type="number"
-                        placeholder="Emas (g)"
-                        className="p-3 border rounded-xl w-full"
-                        onChange={(e) => setGoldWeight(Number(e.target.value))}
-                      />
-                      <input
-                        type="number"
-                        placeholder="Perak (g)"
-                        className="p-3 border rounded-xl w-full"
-                        onChange={(e) =>
-                          setSilverWeight(Number(e.target.value))
-                        }
-                      />
-                    </div>
-                    <div className="p-3 bg-yellow-600 rounded-xl text-white text-center font-bold">
-                      RM {(goldZakat() + silverZakat()).toFixed(2)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* 5. KAD HARTA (ASAL) */}
-                <Card className="border-emerald-100 shadow-sm md:col-span-2">
-                  <CardHeader className="bg-emerald-50/50">
-                    <CardTitle className="flex items-center gap-2 text-emerald-700 font-bold">
-                      <Wallet size={20} /> Harta / Simpanan
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6 space-y-4">
-                    <input
-                      type="number"
-                      placeholder="Masukkan jumlah simpanan (RM)"
-                      className="p-4 border-2 rounded-2xl w-full text-lg focus:border-emerald-500 outline-none transition-all"
-                      onChange={(e) => setSavingsAmount(Number(e.target.value))}
-                    />
-                    <div className="p-4 bg-emerald-600 rounded-2xl text-white text-center font-black text-xl">
-                      RM{" "}
-                      {wealthZakat().toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+      {/* CONTAINER UTAMA (GRID) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ==========================================================
+          KOLUM KIRI: SEMUA INPUT ZAKAT (Guna 8/12 bahagian ruang)
+          ========================================================== */}
+        <div className="lg:col-span-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 1. KAD PENDAPATAN */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+              <div className="p-6 bg-blue-50/50 border-b border-blue-100">
+                <h3 className="flex items-center gap-2 text-blue-700 font-bold text-lg">
+                  <Banknote size={20} /> Input Pendapatan
+                </h3>
               </div>
-            </div>
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Gaji Hakiki
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      onChange={(e) => setSalary(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Bonus/Lain
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                      onChange={(e) => setBonus(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2rem] text-white text-center shadow-lg shadow-blue-100">
+                  <p className="text-[10px] font-bold uppercase opacity-80 mb-1">
+                    Zakat Pendapatan Sebulan
+                  </p>
+                  <p className="text-3xl font-black">
+                    RM{" "}
+                    {incomeZakatResult.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* KOLUM KANAN: JUMLAH ZAKAT WAJIB (PINDAHAN) */}
-            <div className="lg:sticky lg:top-10 space-y-6">
-              <div className="flex flex-col items-center justify-center p-10 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200 text-center">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
-                  JUMLAH ZAKAT WAJIB
-                </p>
-                <h2 className="text-6xl font-black text-green-600 tracking-tighter mb-8">
+            {/* 2. KAD PELEPASAN & HAD KIFAYAH */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+              <div className="p-6 bg-emerald-50/50 border-b border-emerald-100">
+                <h3 className="flex items-center gap-2 text-emerald-700 font-bold text-lg">
+                  <CheckCircle2 size={20} /> Pelepasan & Had Kifayah
+                </h3>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                      KWSP
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="RM"
+                      className="w-full p-2 bg-slate-50 border rounded-xl text-xs"
+                      onChange={(e) => setKwsp(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                      Ibu Bapa
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="RM"
+                      className="w-full p-2 bg-slate-50 border rounded-xl text-xs"
+                      onChange={(e) => setParents(Number(e.target.value))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-bold text-slate-400 uppercase block mb-1">
+                      Belajar
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="RM"
+                      className="w-full p-2 bg-slate-50 border rounded-xl text-xs"
+                      onChange={(e) => setEducation(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-dashed border-emerald-200 flex justify-between items-center">
+                  <span className="text-xs font-bold text-emerald-800 italic">
+                    Jumlah Had Kifayah:
+                  </span>
+                  <span className="font-black text-emerald-700 text-lg">
+                    RM{" "}
+                    {(
+                      1000 +
+                      (hasSpouse ? 500 : 0) +
+                      childrenCount * 250
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 3. KAD KRIPTO */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+              <div className="p-6 bg-orange-50/50 border-b border-orange-100">
+                <h3 className="flex items-center gap-2 text-orange-700 font-bold text-lg">
+                  <TrendingUp size={20} /> Zakat Kripto
+                </h3>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <input
+                  type="number"
+                  placeholder="Nilai Pelaburan Kripto (RM)"
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500"
+                  onChange={(e) => setCryptoBalance(Number(e.target.value))}
+                />
+                <div className="p-3 bg-orange-600 rounded-xl text-white text-center font-black">
+                  RM {cryptoZakat().toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 4. KAD LOGAM (EMAS & PERAK) */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+              <div className="p-6 bg-yellow-50/50 border-b border-yellow-100">
+                <h3 className="flex items-center gap-2 text-yellow-700 font-bold text-lg">
+                  <Coins size={20} /> Zakat Logam
+                </h3>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="number"
+                    placeholder="Emas (g)"
+                    className="p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                    onChange={(e) => setGoldWeight(Number(e.target.value))}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Perak (g)"
+                    className="p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+                    onChange={(e) => setSilverWeight(Number(e.target.value))}
+                  />
+                </div>
+                <div className="p-3 bg-yellow-600 rounded-xl text-white text-center font-black">
+                  RM {(goldZakat() + silverZakat()).toFixed(2)}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 5. KAD HARTA / SIMPANAN (LEBAR PENUH DI KOLUM KIRI) */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden md:col-span-2">
+              <div className="p-6 bg-emerald-50/50 border-b border-emerald-100">
+                <h3 className="flex items-center gap-2 text-emerald-700 font-bold text-lg">
+                  <Wallet size={20} /> Zakat Harta / Simpanan
+                </h3>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <input
+                  type="number"
+                  placeholder="Masukkan jumlah simpanan tahunan (RM)"
+                  className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] text-xl font-bold text-center focus:border-emerald-500 outline-none transition-all"
+                  onChange={(e) => setSavingsAmount(Number(e.target.value))}
+                />
+                <div className="p-4 bg-emerald-600 rounded-[2rem] text-white text-center font-black text-2xl shadow-lg shadow-emerald-100">
                   RM{" "}
-                  {grandTotal().toLocaleString(undefined, {
+                  {wealthZakat().toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                   })}
-                </h2>
-
-                <Button
-                  onClick={handleFinalSubmit}
-                  className="w-full py-8 bg-green-600 hover:bg-green-700 text-white rounded-full text-xl font-bold shadow-xl shadow-green-100 flex items-center justify-center gap-3 transition-transform active:scale-95"
-                >
-                  <CheckCircle size={24} /> Tunaikan & Simpan
-                </Button>
-
-                <p className="mt-6 text-[10px] text-slate-400 font-medium px-4 leading-relaxed">
-                  Data akan direkodkan secara automatik ke dalam sejarah
-                  aktiviti anda.
-                </p>
-              </div>
-
-              {/* TIPS TAMBAHAN (OPTIONAL) */}
-              <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 text-blue-800 text-xs">
-                <strong>Info:</strong> Pastikan semua input adalah berdasarkan
-                nilai semasa untuk ketepatan pengiraan.
-              </div>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* MODAL & OTHERS */}
+        {/* ==========================================================
+          KOLUM KANAN: HASIL ZAKAT WAJIB (Guna 4/12 bahagian ruang)
+          ========================================================== */}
+        <div className="lg:col-span-4 lg:sticky lg:top-10">
+          <div className="bg-white rounded-[3rem] p-10 shadow-2xl border-2 border-slate-50 flex flex-col items-center text-center min-h-[500px] justify-center relative overflow-hidden">
+            {/* Accent Line */}
+            <div className="absolute top-0 left-0 w-full h-3 bg-green-600"></div>
+
+            <div className="space-y-2 mb-10">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">
+                Jumlah Zakat Wajib
+              </p>
+              <h2 className="text-6xl font-black text-green-600 tracking-tighter">
+                RM{" "}
+                {grandTotal().toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h2>
+            </div>
+
+            <Button
+              onClick={handleFinalSubmit}
+              className="w-full py-10 bg-green-600 hover:bg-green-700 text-white rounded-full text-2xl font-black shadow-2xl shadow-green-200 transition-all active:scale-95 flex items-center justify-center gap-4 group"
+            >
+              <CheckCircle
+                size={32}
+                className="group-hover:scale-110 transition-transform"
+              />
+              Tunaikan & Simpan
+            </Button>
+
+            <p className="mt-8 text-xs text-slate-400 font-medium leading-relaxed max-w-[220px]">
+              Klik butang di atas untuk memilih kaedah pembayaran dan merekod
+              aktiviti.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* PAYMENT MODAL */}
       <PaymentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
