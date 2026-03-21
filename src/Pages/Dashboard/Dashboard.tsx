@@ -189,7 +189,10 @@ export default function Dashboard() {
                             : item.kategori}
                         </span>
                         <p className="font-bold text-slate-800">
-                          RM {Number(item.total_zakat).toFixed(2)}
+                          RM{" "}
+                          {Number(item.total_zakat).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                          })}
                         </p>
                       </td>
                       <td className="px-6 py-4 text-right">
