@@ -10,6 +10,12 @@ import {
   ChevronRight,
   RotateCcw,
   RefreshCw,
+  ExternalLink,
+  CreditCard,
+  QrCode,
+  X,
+  Copy,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,8 +23,9 @@ export default function Dashboard() {
   const { zakatResults } = useZakat() as any;
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  // 1. FUNGSI AMBIL DATA DARI DATABASE (Aktiviti Terkini)
+  // 1. FUNGSI AMBIL DATA
   const fetchHistory = async () => {
     setLoading(true);
     const token = localStorage.getItem("maliyyah_token");
@@ -41,41 +48,35 @@ export default function Dashboard() {
     fetchHistory();
   }, []);
 
-  // 2. FUNGSI RESET DATA (Frontend Sahaja)
+  // 2. FUNGSI RESET
   const handleReset = async () => {
     if (!confirm("Padam semua sejarah aktiviti?")) return;
-
     try {
-      // Logik Automatik:
-      // Jika buka di Vercel, ia guna URL Render. Jika buka di Laptop, ia guna Localhost.
       const isProduction = window.location.hostname !== "localhost";
       const API_URL = isProduction
-        ? "https://maliyyahapp-1.onrender.com/api/history" // GANTI URL RENDER ANDA DI SINI
+        ? "https://maliyyahapp-1.onrender.com/api/history"
         : "http://127.0.0.1:8000/api/history";
 
-      const response = await fetch(API_URL, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(API_URL, { method: "DELETE" });
       if (response.ok) {
-        setHistory([]); // Buang senarai di skrin serta-merta
+        setHistory([]);
         toast.success("Rekod berjaya dipadam.");
-
-        // Cara lama yang anda suka - kita kekalkan untuk 'refresh' total zakat
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
+        setTimeout(() => window.location.reload(), 500);
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Gagal reset. Pastikan server Backend anda aktif.");
+      toast.error("Gagal reset data.");
     }
   };
-  // 3. FUNGSI DOWNLOAD PDF (Placeholder)
+
+  // 3. FUNGSI PDF (FIXED)
   const downloadPDF = (id: string) => {
-    toast.info("Menjana PDF... Sila tunggu.");
-    // Logik window.open(apiUrl + `/api/generate-pdf/${id}`) biasanya di sini
+    const token = localStorage.getItem("maliyyah_token");
+    const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+    toast.info("Menjana PDF...");
+    window.open(`${apiUrl}/api/generate-pdf/${id}?token=${token}`, "_blank");
   };
+
+  const handlePayNow = () => setIsPaymentModalOpen(true);
 
   const totalSemasa = zakatResults?.total_zakat || 0;
 
@@ -109,13 +110,30 @@ export default function Dashboard() {
       bg: "bg-yellow-50",
     },
   ];
-  const handlePayNow = () => {
-    // Anda boleh ganti URL ini dengan portal zakat pilihan anda
-    window.open("https://zakat.sabah.gov.my/", "_blank");
-    toast.success("Membuka Portal Zakat Sabah...");
-  };
+
   return (
-    <div className="p-6 space-y-8 bg-slate-50 min-h-screen text-slate-900">
+    <div className="p-6 space-y-8 bg-slate-50 min-h-screen text-slate-900 relative">
+      {/* HEADER: LOKASI (DITAMBAH SEMULA) */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+            Dashboard Utama
+          </h1>
+          <div className="flex items-center gap-1.5 text-slate-500 text-sm mt-1">
+            <MapPin size={14} className="text-emerald-500" />
+            <span>Lahad Datu, Sabah</span>
+          </div>
+        </div>
+        <div className="text-right hidden sm:block">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Status Haul
+          </p>
+          <p className="text-sm font-bold text-emerald-600 italic">
+            Aktif (1447H)
+          </p>
+        </div>
+      </div>
+
       {/* BANNER HIJAU */}
       <div className="relative bg-[#006837] rounded-[40px] p-10 text-white overflow-hidden shadow-2xl">
         <div className="relative z-10">
@@ -143,22 +161,91 @@ export default function Dashboard() {
         <Wallet className="absolute right-[-20px] bottom-[-20px] size-64 opacity-10 rotate-12" />
       </div>
 
-      {/* KAD STATISTIK */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+      {/* MODAL PILIH CARA BAYARAN */}
+      {isPaymentModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl p-8 relative animate-in fade-in zoom-in duration-200">
+            <button
+              onClick={() => setIsPaymentModalOpen(false)}
+              className="absolute right-6 top-6 text-slate-400 hover:text-slate-600 p-2"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-2xl font-bold text-slate-800 mb-8">
+              Pilih Cara Bayaran
+            </h3>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center mb-8">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                Jumlah Zakat
+              </p>
+              <h2 className="text-4xl font-black text-emerald-600">
+                RM{" "}
+                {totalSemasa.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <button
+                onClick={() =>
+                  window.open("https://zakat.sabah.gov.my", "_blank")
+                }
+                className="w-full flex items-center gap-4 border-2 border-emerald-500 bg-emerald-50/50 p-4 rounded-2xl text-left hover:bg-emerald-100 transition-all"
+              >
+                <div className="p-3 rounded-xl bg-emerald-100 text-emerald-600">
+                  <ExternalLink size={20} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-slate-900">
+                    Portal Rasmi MUIS
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Bayar terus via FPX (Sabah)
+                  </p>
+                </div>
+                <ChevronRight className="text-emerald-500" size={20} />
+              </button>
+              <div className="w-full flex items-center gap-4 border border-slate-100 bg-white p-4 rounded-2xl">
+                <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+                  <CreditCard size={20} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-slate-900">JomPAY</h4>
+                  <p className="text-xs text-slate-500 uppercase font-mono">
+                    Biller Code: 55236
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText("55236");
+                    toast.success("Biller Code disalin!");
+                  }}
+                  className="bg-blue-600 text-white px-4 py-1.5 text-[10px] font-bold rounded-lg"
+                >
+                  SALIN
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STATS & CHART PLACEHOLDER (DITAMBAH) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
           <div
-            key={index}
-            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between hover:border-emerald-200 transition-all"
+            key={i}
+            className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm"
           >
             <div className="flex justify-between items-start mb-4">
               <p className="text-xs font-bold text-slate-400 uppercase">
                 {stat.title}
               </p>
-              <div className={`${stat.bg} ${stat.color} p-2.5 rounded-2xl`}>
-                <stat.icon size={20} />
+              <div className={`${stat.bg} ${stat.color} p-2 rounded-xl`}>
+                <stat.icon size={18} />
               </div>
             </div>
-            <h3 className="text-2xl font-black text-slate-800">
+            <h3 className="text-2xl font-black">
               RM{" "}
               {stat.amount.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
@@ -168,8 +255,8 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* GRID BAWAH: TABEL & DIDIK ZAKAT */}
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* AKTIVITI TERKINI */}
         <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="p-6 border-b border-slate-50 flex justify-between items-center">
             <h3 className="font-bold flex items-center gap-2 text-slate-700">
@@ -178,7 +265,7 @@ export default function Dashboard() {
             <div className="flex gap-2">
               <button
                 onClick={handleReset}
-                className="text-[10px] flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full font-bold text-slate-500 transition-colors"
+                className="text-[10px] bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full font-bold text-slate-500 transition-colors"
               >
                 <RotateCcw size={12} /> RESET DATA
               </button>
@@ -207,7 +294,7 @@ export default function Dashboard() {
                   history.slice(0, 5).map((item: any, i: number) => (
                     <tr
                       key={i}
-                      className="hover:bg-slate-50/50 transition-colors group"
+                      className="hover:bg-slate-50/50 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm text-slate-500">
                         {new Date(item.created_at).toLocaleDateString("ms-MY")}
@@ -220,7 +307,6 @@ export default function Dashboard() {
                           RM{" "}
                           {Number(item.total_zakat).toLocaleString(undefined, {
                             minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
                           })}
                         </p>
                       </td>
@@ -240,8 +326,7 @@ export default function Dashboard() {
                       colSpan={3}
                       className="px-6 py-12 text-center text-slate-400 text-sm italic"
                     >
-                      Tiada rekod ditemui. Tekan "Tunaikan" di kalkulator untuk
-                      menyimpan rekod.
+                      Tiada rekod ditemui.
                     </td>
                   </tr>
                 )}
@@ -250,10 +335,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* DIDIK ZAKAT - WIDGET BERFUNGSI */}
+        {/* DIDIK ZAKAT */}
         <div className="bg-emerald-50 rounded-[32px] p-8 border border-emerald-100 flex flex-col justify-between relative overflow-hidden group">
           <div className="relative z-10">
-            <div className="bg-emerald-500 size-12 rounded-2xl flex items-center justify-center text-white mb-6 shadow-xl shadow-emerald-200 transition-transform group-hover:scale-110">
+            <div className="bg-emerald-500 size-12 rounded-2xl flex items-center justify-center text-white mb-6 shadow-xl shadow-emerald-200">
               <Briefcase size={24} />
             </div>
             <h3 className="font-bold text-emerald-900 text-xl mb-3">
@@ -264,8 +349,7 @@ export default function Dashboard() {
               mengimbangkan ekonomi ummah."
             </p>
             <div className="mt-4 p-3 bg-white/50 rounded-xl border border-emerald-200/50 text-[11px] text-emerald-800 font-medium">
-              💡 **Tips:** Zakat Kripto dikira 2.5% jika nilai melebihi Nisab
-              (RM {totalSemasa > 0 ? "85g Emas" : "..."}).
+              💡 **Tips:** Zakat Kripto dikira 2.5% jika nilai melebihi Nisab.
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-emerald-200/50 flex items-center justify-between text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
