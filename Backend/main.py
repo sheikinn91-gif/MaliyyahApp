@@ -13,6 +13,11 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 import google.generativeai as genai
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+
 
 # ==========================================
 # 1. KONFIGURASI DATABASE (PostgreSQL & SQLite Fallback)

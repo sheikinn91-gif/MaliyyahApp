@@ -43,37 +43,35 @@ export default function Dashboard() {
 
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
   const handleReset = async () => {
-    // 1. Minta pengesahan daripada pengguna
-    if (
-      !confirm("Adakah anda pasti mahu memadam semua rekod Aktiviti Terkini?")
-    )
-      return;
+    if (!confirm("Adakah anda pasti mahu memadam semua rekod?")) return;
 
     try {
-      // 2. Panggil API Backend yang anda buat tadi
-      const response = await fetch("http://localhost:8000/api/history", {
+      // Pastikan port 8000 (standard FastAPI) atau port yang anda guna di terminal
+      const response = await fetch("http://127.0.0.1:8000/api/history", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          // Jika perlukan token: "Authorization": `Bearer ${localStorage.getItem("maliyyah_token")}`
         },
       });
 
+      const result = await response.json();
+
       if (response.ok) {
-        // 3. KOSONGKAN STATE: Ini kunci utama supaya senarai terus hilang dari skrin
-        setHistory([]);
+        setHistory([]); // Kosongkan senarai di skrin
+        toast.success(result.message);
 
-        // 4. Paparkan mesej berjaya
-        toast.success("Semua rekod aktiviti telah dipadam.");
-
-        // 5. Reload untuk pastikan Banner Hijau juga kembali ke RM 0.00
-        window.location.reload();
+        // Tunggu sekejap sebelum reload untuk nampak kesan kosong
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
-        toast.error("Gagal memadam rekod di server.");
+        toast.error("Gagal memadam: " + result.detail);
       }
     } catch (error) {
-      console.error("Ralat semasa reset:", error);
-      toast.error("Ralat sambungan ke server.");
+      console.error("Ralat sambungan:", error);
+      toast.error(
+        "Ralat: Pastikan Backend Python sedang berjalan di port 8000",
+      );
     }
   };
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
