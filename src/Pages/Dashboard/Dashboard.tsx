@@ -47,7 +47,8 @@ export default function Dashboard() {
 
     try {
       // Pastikan port 8000 (standard FastAPI) atau port yang anda guna di terminal
-      const response = await fetch("http://127.0.0.1:8000/api/history", {
+      const BACKEND_URL = "https://maliyyah-api-anda.onrender.com";
+      const response = await fetch(`${BACKEND_URL}/api/history`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -57,21 +58,20 @@ export default function Dashboard() {
       const result = await response.json();
 
       if (response.ok) {
-        setHistory([]); // Kosongkan senarai di skrin
-        toast.success(result.message);
+        setHistory([]);
+        toast.success("Rekod berjaya dipadam dari server.");
 
-        // Tunggu sekejap sebelum reload untuk nampak kesan kosong
+        // Beri sedikit masa sebelum reload
         setTimeout(() => {
           window.location.reload();
-        }, 500);
+        }, 800);
       } else {
-        toast.error("Gagal memadam: " + result.detail);
+        const errorData = await response.json();
+        toast.error(`Gagal: ${errorData.detail || "Ralat Server"}`);
       }
     } catch (error) {
       console.error("Ralat sambungan:", error);
-      toast.error(
-        "Ralat: Pastikan Backend Python sedang berjalan di port 8000",
-      );
+      toast.error("Ralat: Tidak dapat menyambung ke server awan.");
     }
   };
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
