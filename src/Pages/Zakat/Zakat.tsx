@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useZakat } from "@/components/Context/ZakatContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-
+import AIChatbot from "@/components/Context/AIChatBot";
 export default function Zakat() {
   const { setZakatResults } = useZakat();
   const navigate = useNavigate();
@@ -198,13 +198,13 @@ export default function Zakat() {
             <CardContent className="p-6 space-y-4">
               <input
                 type="number"
-                placeholder="Gaji RM"
+                placeholder="RM Gaji"
                 className="w-full p-3 bg-slate-50 rounded-xl font-bold"
                 onChange={(e) => setSalary(Number(e.target.value))}
               />
               <input
                 type="number"
-                placeholder="Bonus RM"
+                placeholder="RM Bonus"
                 className="w-full p-3 bg-slate-50 rounded-xl font-bold"
                 onChange={(e) => setBonus(Number(e.target.value))}
               />
@@ -225,13 +225,13 @@ export default function Zakat() {
             <CardContent className="p-6 space-y-3">
               <input
                 type="number"
-                placeholder="KWSP RM"
+                placeholder="RM KWSP"
                 className="w-full p-3 bg-slate-50 rounded-xl"
                 onChange={(e) => setKwsp(Number(e.target.value))}
               />
               <input
                 type="number"
-                placeholder="Ibu Bapa RM"
+                placeholder="RM Ibubapa"
                 className="w-full p-3 bg-slate-50 rounded-xl"
                 onChange={(e) => setParents(Number(e.target.value))}
               />
@@ -330,6 +330,8 @@ export default function Zakat() {
           </Card>
         </div>
       </div>
+      {/* 2. MASUKKAN SEMULA AICHATBOT DI SINI */}
+      <AIChatbot />
     </div>
   );
 }
