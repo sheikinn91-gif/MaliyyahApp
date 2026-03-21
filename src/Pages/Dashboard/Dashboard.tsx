@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,50 +16,64 @@ import {
 } from "lucide-react";
 
 export default function MaliyyahDashboard() {
-  // 1. STATE BERMULA DENGAN 0 - UNTUK PAPARAN RM 0.00 BILA LOGIN
+  // 1. STATE UTAMA - BERMULA DENGAN 0 (CLEAN LOGIN)
   const [totalZakat, setTotalZakat] = useState<number>(0);
   const [zakatPendapatan, setZakatPendapatan] = useState<number>(0);
   const [zakatKripto, setZakatKripto] = useState<number>(0);
   const [zakatHarta, setZakatHarta] = useState<number>(0);
   const [zakatEmas, setZakatEmas] = useState<number>(0);
-
-  // 2. FIX RALAT 'NEVER' - Beritahu TypeScript ini adalah array objek
   const [history, setHistory] = useState<any[]>([]);
 
-  // 2. LOGIK PENARIKAN DATA AUTOMATIK
-  // Fungsi ini akan "tarik" nilai setiap kali dashboard dibuka
+  // 2. MAGNET PENARIK DATA (DARI KALKULATOR KE DASHBOARD)
   useEffect(() => {
-    const savedData = localStorage.getItem("maliyyah_zakat");
-    if (savedData) {
-      const data = JSON.parse(savedData);
+    // Ambil data yang dihantar oleh butang "Tunaikan & Simpan" di Kalkulator
+    const dataTersimpan = localStorage.getItem("maliyyah_zakat_data");
+
+    if (dataTersimpan) {
+      const data = JSON.parse(dataTersimpan);
+
+      // Update semua nilai di Dashboard secara automatik
       setTotalZakat(data.total || 0);
       setZakatPendapatan(data.pendapatan || 0);
       setZakatKripto(data.kripto || 0);
       setZakatHarta(data.harta || 0);
       setZakatEmas(data.emas || 0);
-    }
-  }, []); // Berjalan sekali setiap kali dashboard muncul
 
-  // 3. FUNGSI RESET YANG AKAN MEMAKSA SEMUA JADI 0
+      // Masukkan ke dalam jadual Aktiviti Terkini
+      setHistory([
+        {
+          tarikh: new Date().toLocaleDateString("en-GB"),
+          butiran: "ZAKAT PENDAPATAN & KRIPTO",
+          jumlah: data.total,
+        },
+      ]);
+    }
+  }, []); // Berjalan setiap kali anda buka page Dashboard
+
+  // 3. FUNGSI TOTALLY RESET (CUCI SKRIN & CUCI MEMORI)
   const handleResetData = () => {
-    if (window.confirm("TOTALLY RESET SEMUA DATA?")) {
+    if (
+      window.confirm(
+        "ADAKAH ANDA PASTI? Ini akan memadam semua data di Dashboard dan Kalkulator.",
+      )
+    ) {
+      localStorage.removeItem("maliyyah_zakat_data"); // Padam memori browser
       setTotalZakat(0);
       setZakatPendapatan(0);
       setZakatKripto(0);
       setZakatHarta(0);
       setZakatEmas(0);
       setHistory([]);
-      localStorage.removeItem("maliyyah_zakat"); // Padam memori kalkulator
-      alert("Reset Berjaya!");
+      alert("Data Berjaya Di-Reset ke RM 0.00");
     }
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800">
+    <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* BANNER HIJAU (EMERALD) */}
+        {/* BANNER HIJAU - RM 11,603.75 AKAN MUNCUL DI SINI */}
         <div className="bg-[#006747] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-2">
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter">
                 RM{" "}
@@ -73,7 +87,7 @@ export default function MaliyyahDashboard() {
                 <ExternalLink size={12} />
               </div>
             </div>
-            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 uppercase">
+            <Button className="bg-white text-[#006747] hover:bg-slate-100 rounded-2xl px-8 py-7 font-black text-lg flex gap-3 shadow-xl uppercase transition-transform active:scale-95">
               Bayar Sekarang <CreditCard size={20} />
             </Button>
           </div>
@@ -131,15 +145,15 @@ export default function MaliyyahDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* AKTIVITI TERKINI */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center px-2">
               <h3 className="font-bold flex items-center gap-2 text-slate-700">
                 <Clock size={18} /> Aktiviti Terkini
               </h3>
-              {/* BUTANG RESET DATA UTAMA */}
               <button
                 onClick={handleResetData}
-                className="text-[10px] font-black text-slate-400 hover:text-red-500 flex items-center gap-1 p-2 uppercase tracking-widest cursor-pointer"
+                className="text-[10px] font-black text-slate-400 hover:text-red-500 flex items-center gap-1 p-2 uppercase tracking-widest cursor-pointer transition-all"
               >
                 <RotateCcw size={12} /> Reset Data
               </button>
@@ -161,8 +175,13 @@ export default function MaliyyahDashboard() {
                         <td className="px-6 py-4 text-sm text-slate-500 italic">
                           {row.tarikh}
                         </td>
-                        <td className="px-6 py-4 font-black text-slate-800">
-                          RM {row.jumlah.toLocaleString()}
+                        <td className="px-6 py-4">
+                          <div className="text-[10px] font-black text-slate-400 uppercase mb-1">
+                            PEMBAYARAN
+                          </div>
+                          <div className="text-sm font-black text-slate-800">
+                            RM {row.jumlah.toLocaleString()}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button
@@ -189,6 +208,7 @@ export default function MaliyyahDashboard() {
             </div>
           </div>
 
+          {/* SIDEBAR */}
           <div className="space-y-6">
             <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
               <div className="flex items-center gap-2 text-emerald-600 font-bold mb-4">
@@ -198,26 +218,24 @@ export default function MaliyyahDashboard() {
                 <h3>Didik Zakat</h3>
               </div>
               <p className="text-xs text-slate-500 italic">
-                "Zakat menyucikan harta."
+                "Penyucian harta bermula dengan niat yang ikhlas."
               </p>
             </Card>
 
             <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
-              <h3 className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-6">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest">
                 Market Pulse
               </h3>
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl font-black italic">
-                    B
+                  <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl font-black italic text-xs">
+                    BTC
                   </div>
-                  <p className="text-sm font-black text-slate-800">
-                    Bitcoin (BTC)
-                  </p>
+                  <p className="text-sm font-black text-slate-800">Bitcoin</p>
                 </div>
-                <p className="text-sm font-black text-slate-800">
+                <div className="text-right font-black text-sm">
                   RM 278,742.88
-                </p>
+                </div>
               </div>
             </Card>
           </div>
