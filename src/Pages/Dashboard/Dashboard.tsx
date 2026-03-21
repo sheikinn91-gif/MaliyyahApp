@@ -15,6 +15,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import AIChatbot from "@/components/Context/AIChatBot";
 
 export default function MaliyyahDashboard() {
   // 1. STATE UNTUK PAPARAN DATA
@@ -364,6 +365,9 @@ export default function MaliyyahDashboard() {
         </div>
       )}
       {/* Kod Modal End */}
+      <div className="relative z-[110]">
+        <AIChatbot />
+      </div>
     </div> // Penutup <main> atau container utama dalam Dashboard
   );
 }

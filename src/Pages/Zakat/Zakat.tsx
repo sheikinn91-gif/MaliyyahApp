@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { useZakat } from "@/components/Context/ZakatContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import AIChatbot from "@/components/Context/AIChatBot";
 export default function Zakat() {
   const { setZakatResults } = useZakat();
   const navigate = useNavigate();
@@ -330,8 +329,6 @@ export default function Zakat() {
           </Card>
         </div>
       </div>
-      {/* 2. MASUKKAN SEMULA AICHATBOT DI SINI */}
-      <AIChatbot />
     </div>
   );
 }
