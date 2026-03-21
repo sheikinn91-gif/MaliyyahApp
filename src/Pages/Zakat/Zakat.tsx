@@ -295,22 +295,37 @@ export default function Zakat() {
   };
   // --- HABIS BLOK ---
   return (
-    <div className="w-full min-h-screen bg-slate-50/50 p-4 md:p-8 pb-24">
+    <div className="w-full min-h-screen bg-slate-50/50 p-4 md:p-8 pb-24 text-slate-900">
       <div className="max-w-7xl mx-auto space-y-10">
-        {/* GRID UTAMA - Menggunakan items-stretch untuk ketinggian kad yang sama */}
+        {/* HEADER SECTION */}
+        <header className="text-center space-y-3 mb-12">
+          <h1 className="text-4xl font-black text-slate-800 tracking-tight italic">
+            Maliyyah{" "}
+            <span className="text-green-600 not-italic">Zakat Engine</span>
+          </h1>
+          <div className="inline-flex items-center gap-3 bg-white px-6 py-2 rounded-2xl shadow-sm border border-slate-100">
+            <div className="p-1 bg-amber-100 rounded-lg text-amber-600">
+              <Info size={16} />
+            </div>
+            <span className="text-sm font-bold text-slate-600">
+              Nisab Semasa: RM {nisabSemasa.toLocaleString()}
+            </span>
+          </div>
+        </header>
+
+        {/* GRID UTAMA - 3 KOLUM YANG SEIMBANG */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {/* 1. KAD PENDAPATAN */}
           <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden flex flex-col">
             <div className="p-6 bg-blue-50/50 border-b border-blue-50 flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg">
+              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-200">
                 <Banknote size={20} />
               </div>
-              <h3 className="font-bold text-slate-800">Pendapatan</h3>
+              <h3 className="font-bold text-slate-800">Input Pendapatan</h3>
             </div>
-            {/* flex-grow membolehkan ruang tengah membesar, mt-auto menolak butang ke bawah */}
             <CardContent className="p-8 flex flex-col flex-grow">
-              <div className="space-y-4 mb-6">
-                <div className="space-y-2">
+              <div className="space-y-5">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                     Gaji Hakiki
                   </label>
@@ -321,9 +336,9 @@ export default function Zakat() {
                     onChange={(e) => setSalary(Number(e.target.value))}
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                    Bonus
+                    Bonus / Extra
                   </label>
                   <input
                     type="number"
@@ -333,82 +348,91 @@ export default function Zakat() {
                   />
                 </div>
               </div>
-
-              {/* mt-auto memastikan kedudukan butang ini selari dengan butang kad sebelah */}
-              <div className="mt-auto p-6 bg-blue-600 rounded-[2rem] text-white text-center shadow-xl">
-                <p className="text-[10px] font-bold uppercase opacity-80 mb-1">
-                  Zakat Pendapatan
-                </p>
-                <p className="text-3xl font-black">
-                  RM{" "}
-                  {incomeZakatResult.toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                  })}
-                </p>
+              {/* mt-auto memastikan butang sentiasa di bawah baris yang sama dengan kad lain */}
+              <div className="mt-auto pt-8">
+                <div className="p-6 bg-blue-600 rounded-[2rem] text-white text-center shadow-xl shadow-blue-100">
+                  <p className="text-[10px] font-bold uppercase opacity-80 mb-1 tracking-tighter">
+                    Zakat Pendapatan
+                  </p>
+                  <p className="text-3xl font-black">
+                    RM{" "}
+                    {incomeZakatResult.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* 2. KAD PELEPASAN - Punca ketinggian grid berubah */}
+          {/* 2. KAD PELEPASAN - SUSUNAN MENEGAK BERSIH */}
           <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden flex flex-col">
             <div className="p-6 bg-emerald-50/50 border-b border-emerald-50 flex items-center gap-3">
-              <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-lg">
+              <div className="p-2 bg-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-200">
                 <CheckCircle2 size={20} />
               </div>
-              <h3 className="font-bold text-slate-800">Pelepasan</h3>
+              <h3 className="font-bold text-slate-800">Pelepasan & Had</h3>
             </div>
             <CardContent className="p-8 flex flex-col flex-grow">
-              <div className="space-y-4 mb-6">
-                {["KWSP (11%)", "Ibu Bapa", "Pendidikan"].map((label, idx) => (
-                  <div key={idx} className="flex flex-col space-y-1">
+              <div className="space-y-4">
+                {[
+                  { label: "KWSP (11%)", key: "kwsp" },
+                  { label: "Ibu Bapa", key: "parents" },
+                  { label: "Pendidikan", key: "edu" },
+                ].map((item) => (
+                  <div key={item.key} className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                      {label}
+                      {item.label}
                     </label>
                     <input
                       type="number"
-                      placeholder="RM 0.00"
+                      placeholder="RM"
                       className="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold"
                       onChange={(e) => {
-                        if (idx === 0) setKwsp(Number(e.target.value));
-                        if (idx === 1) setParents(Number(e.target.value));
-                        if (idx === 2) setEducation(Number(e.target.value));
+                        if (item.key === "kwsp")
+                          setKwsp(Number(e.target.value));
+                        if (item.key === "parents")
+                          setParents(Number(e.target.value));
+                        if (item.key === "edu")
+                          setEducation(Number(e.target.value));
                       }}
                     />
                   </div>
                 ))}
               </div>
-
-              <div className="mt-auto p-5 bg-emerald-50 rounded-[1.5rem] border-2 border-dashed border-emerald-200 flex justify-between items-center">
-                <div className="text-left">
-                  <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-                    Had Kifayah
-                  </p>
-                  <p className="font-black text-emerald-800 text-xl">
-                    RM{" "}
-                    {(
-                      1000 +
-                      (hasSpouse ? 500 : 0) +
-                      childrenCount * 250
-                    ).toLocaleString()}
-                  </p>
+              <div className="mt-auto pt-6">
+                <div className="p-5 bg-emerald-50 rounded-[1.5rem] border-2 border-dashed border-emerald-200 flex justify-between items-center">
+                  <div className="text-left">
+                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                      Total Had Kifayah
+                    </p>
+                    <p className="font-black text-emerald-800 text-xl">
+                      RM{" "}
+                      {(
+                        1000 +
+                        (hasSpouse ? 500 : 0) +
+                        childrenCount * 250
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                  <Info size={18} className="text-emerald-400" />
                 </div>
-                <Info size={18} className="text-emerald-400" />
               </div>
             </CardContent>
           </Card>
 
-          {/* 3. KAD KRIPTO - Jarak jauh dibetulkan dengan mt-auto */}
+          {/* 3. KAD KRIPTO - JARAK DIBETULKAN */}
           <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden flex flex-col">
             <div className="p-6 bg-orange-50/50 border-b border-orange-50 flex items-center gap-3">
-              <div className="p-2 bg-orange-600 rounded-xl text-white shadow-lg">
+              <div className="p-2 bg-orange-600 rounded-xl text-white shadow-lg shadow-orange-200">
                 <TrendingUp size={20} />
               </div>
-              <h3 className="font-bold text-slate-800">Kripto</h3>
+              <h3 className="font-bold text-slate-800">Zakat Kripto</h3>
             </div>
             <CardContent className="p-8 flex flex-col flex-grow">
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  Nilai Portfolio
+                  Nilai Portfolio (RM)
                 </label>
                 <input
                   type="number"
@@ -417,14 +441,104 @@ export default function Zakat() {
                   onChange={(e) => setCryptoBalance(Number(e.target.value))}
                 />
               </div>
-
-              <div className="mt-auto p-5 bg-orange-600 rounded-[2rem] text-white text-center font-black text-xl shadow-lg shadow-orange-100">
-                RM {cryptoZakat().toFixed(2)}
+              <div className="mt-auto pt-8">
+                <div className="p-5 bg-orange-600 rounded-[2rem] text-white text-center font-black text-xl shadow-lg shadow-orange-100">
+                  RM {cryptoZakat().toFixed(2)}
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* 4. KAD LOGAM */}
+          <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden flex flex-col">
+            <div className="p-6 bg-yellow-50/50 border-b border-yellow-100 flex items-center gap-3">
+              <div className="p-2 bg-yellow-600 rounded-xl text-white shadow-lg shadow-yellow-200">
+                <Coins size={20} />
+              </div>
+              <h3 className="font-bold text-slate-800">Zakat Logam</h3>
+            </div>
+            <CardContent className="p-8 flex flex-col flex-grow">
+              <div className="space-y-4">
+                <input
+                  type="number"
+                  placeholder="Berat Emas (g)"
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-yellow-500"
+                  onChange={(e) => setGoldWeight(Number(e.target.value))}
+                />
+                <input
+                  type="number"
+                  placeholder="Berat Perak (g)"
+                  className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-yellow-500"
+                  onChange={(e) => setSilverWeight(Number(e.target.value))}
+                />
+              </div>
+              <div className="mt-auto pt-8">
+                <div className="p-5 bg-yellow-600 rounded-[2rem] text-white text-center font-black text-xl shadow-lg shadow-yellow-100">
+                  RM {(goldZakat() + silverZakat()).toFixed(2)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 5. KAD HARTA */}
+          <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden flex flex-col">
+            <div className="p-6 bg-teal-50/50 border-b border-teal-50 flex items-center gap-3">
+              <div className="p-2 bg-teal-600 rounded-xl text-white shadow-lg shadow-teal-200">
+                <Wallet size={20} />
+              </div>
+              <h3 className="font-bold text-slate-800">Zakat Harta</h3>
+            </div>
+            <CardContent className="p-8 flex flex-col flex-grow">
+              <div className="space-y-2 text-center">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+                  Simpanan / Tunai
+                </label>
+                <input
+                  type="number"
+                  placeholder="RM 0.00"
+                  className="w-full p-5 bg-slate-50 border-2 border-teal-100 rounded-[2rem] text-2xl font-black text-center text-teal-700 outline-none focus:border-teal-500 focus:bg-white transition-all shadow-inner"
+                  onChange={(e) => setSavingsAmount(Number(e.target.value))}
+                />
+              </div>
+              <div className="mt-auto pt-8">
+                <div className="p-5 bg-teal-600 rounded-[2rem] text-white text-center font-black text-xl shadow-lg shadow-teal-100">
+                  RM {wealthZakat().toFixed(2)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 6. KAD JUMLAH ZAKAT WAJIB (SEBELAH HARTA) */}
+          <Card className="border-4 border-dashed border-green-200 bg-green-50/40 rounded-[3rem] flex flex-col items-center justify-center p-8 text-center relative group overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
+            <p className="text-xs font-black text-green-700 uppercase tracking-[0.4em] mb-4">
+              Total Zakat Wajib
+            </p>
+            <div className="mb-8">
+              <h2 className="text-6xl font-black text-green-600 tracking-tighter group-hover:scale-110 transition-transform duration-500">
+                RM{" "}
+                {grandTotal().toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </h2>
+              <div className="w-20 h-1.5 bg-green-200 mx-auto mt-2 rounded-full"></div>
+            </div>
+            <Button
+              onClick={handleFinalSubmit}
+              className="w-full py-9 bg-green-600 hover:bg-green-700 text-white rounded-full text-2xl font-black shadow-2xl shadow-green-200 transition-all active:scale-95 flex items-center justify-center gap-4"
+            >
+              <CheckCircle size={32} /> Tunaikan & Simpan
+            </Button>
+          </Card>
         </div>
       </div>
+
+      <PaymentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirmIntent={onConfirmIntent}
+        totalAmount={grandTotal()}
+      />
     </div>
   );
 }
