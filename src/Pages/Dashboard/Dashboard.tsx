@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 export default function MaliyyahDashboard() {
+  // 1. STATE UTAMA
   const [totalZakat, setTotalZakat] = useState<number>(0);
   const [zakatPendapatan, setZakatPendapatan] = useState<number>(0);
   const [zakatKripto, setZakatKripto] = useState<number>(0);
@@ -23,30 +24,42 @@ export default function MaliyyahDashboard() {
   const [zakatEmas, setZakatEmas] = useState<number>(0);
   const [history, setHistory] = useState<any[]>([]);
 
-  // MAGNET: Menarik data sebaik sahaja page dibuka
+  // 2. MAGNET DATA: Menarik data dari localStorage sebaik sahaja page dibuka
   useEffect(() => {
     const dataMentah = localStorage.getItem("maliyyah_zakat_data");
 
     if (dataMentah) {
-      const data = JSON.parse(dataMentah);
-      setTotalZakat(data.total || 0);
-      setZakatPendapatan(data.pendapatan || 0);
-      setZakatKripto(data.kripto || 0);
-      setZakatHarta(data.harta || 0);
-      setZakatEmas(data.logam || 0);
+      try {
+        const data = JSON.parse(dataMentah);
 
-      setHistory([
-        {
-          tarikh: new Date().toLocaleDateString("en-GB"),
-          butiran: "ZAKAT KESELURUHAN",
-          jumlah: data.total,
-        },
-      ]);
+        // Update semua nilai berdasarkan payload dari Kalkulator
+        setTotalZakat(data.total || 0);
+        setZakatPendapatan(data.pendapatan || 0);
+        setZakatKripto(data.kripto || 0);
+        setZakatHarta(data.harta || 0);
+        setZakatEmas(data.logam || 0);
+
+        // Masukkan ke dalam rekod Aktiviti Terkini
+        setHistory([
+          {
+            tarikh: new Date().toLocaleDateString("en-GB"),
+            butiran: "ZAKAT KESELURUHAN",
+            jumlah: data.total,
+          },
+        ]);
+      } catch (error) {
+        console.error("Gagal membaca data zakat:", error);
+      }
     }
-  }, []);
+  }, []); // [] bermaksud ia hanya run sekali bila Dashboard di-load
 
+  // 3. FUNGSI RESET
   const handleResetData = () => {
-    if (window.confirm("RESET: Padam semua data Dashboard?")) {
+    if (
+      window.confirm(
+        "ADAKAH ANDA PASTI? Ini akan memadam semua data paparan Dashboard.",
+      )
+    ) {
       localStorage.removeItem("maliyyah_zakat_data");
       setTotalZakat(0);
       setZakatPendapatan(0);
@@ -60,7 +73,7 @@ export default function MaliyyahDashboard() {
   return (
     <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* BANNER HIJAU */}
+        {/* BANNER UTAMA (HIJAU) */}
         <div className="bg-[#006747] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-2">
@@ -72,7 +85,7 @@ export default function MaliyyahDashboard() {
               </h1>
               <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">
                 Status:{" "}
-                {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}{" "}
+                {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}
                 <ExternalLink size={12} />
               </div>
             </div>
@@ -85,7 +98,7 @@ export default function MaliyyahDashboard() {
           </div>
         </div>
 
-        {/* 4 KAD ZAKAT */}
+        {/* GRID 4 KAD ZAKAT */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -133,6 +146,7 @@ export default function MaliyyahDashboard() {
           ))}
         </div>
 
+        {/* BAHAGIAN BAWAH (JADUAL & SIDEBAR) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center px-2">
@@ -146,6 +160,7 @@ export default function MaliyyahDashboard() {
                 <RotateCcw size={12} /> Reset Data
               </button>
             </div>
+
             <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden min-h-[300px]">
               <table className="w-full text-left">
                 <thead>
@@ -189,7 +204,7 @@ export default function MaliyyahDashboard() {
                         colSpan={3}
                         className="px-6 py-20 text-center text-slate-300 italic text-sm"
                       >
-                        Belum ada rekod.
+                        Belum ada rekod. Sila buat pengiraan di Kalkulator.
                       </td>
                     </tr>
                   )}
@@ -197,6 +212,7 @@ export default function MaliyyahDashboard() {
               </table>
             </div>
           </div>
+
           <div className="space-y-6">
             <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
               <div className="flex items-center gap-2 text-emerald-600 font-bold mb-4">
@@ -209,11 +225,12 @@ export default function MaliyyahDashboard() {
                 "Penyucian harta bermula dengan niat yang ikhlas."
               </p>
             </Card>
-            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
+
+            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6 text-sm font-black text-slate-800">
               <h3 className="text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest">
                 Market Pulse
               </h3>
-              <div className="flex justify-between items-center text-sm font-black">
+              <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl italic text-xs">
                     BTC
