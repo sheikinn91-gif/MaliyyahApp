@@ -68,13 +68,14 @@ const Dashboard = () => {
     logam: 0,
   });
 
+  // LOGIK PEMBETULAN 1: Banner Hijau mengikut Database
   const totalKeseluruhan =
     summary.total_keseluruhan > 0
       ? summary.total_keseluruhan
-      : (zakatResults.pendapatan || 0) +
-        (zakatResults.kripto || 0) +
-        (zakatResults.harta || 0) +
-        (zakatResults.logam || 0);
+      : (Number(zakatResults.pendapatan) || 0) +
+        (Number(zakatResults.kripto) || 0) +
+        (Number(zakatResults.harta) || 0) +
+        (Number(zakatResults.logam) || 0);
 
   const refreshData = async () => {
     const token = localStorage.getItem("maliyyah_token");
@@ -126,6 +127,13 @@ const Dashboard = () => {
 
       if (res.ok) {
         resetZakatResults();
+        setSummary({
+          total_keseluruhan: 0,
+          pendapatan: 0,
+          kripto: 0,
+          harta: 0,
+          logam: 0,
+        });
         toast.success("Rekod dipadam!");
         refreshData();
       }
@@ -192,34 +200,36 @@ const Dashboard = () => {
       style: "currency",
       currency: "MYR",
       minimumFractionDigits: 2,
-    }).format(val);
+    }).format(val || 0);
   };
 
+  // LOGIK PEMBETULAN 2: Kad statistik mengikut Database (Summary)
   const stats = [
     {
       title: "Zakat Pendapatan",
-      amount: zakatResults.pendapatan,
+      amount:
+        summary.pendapatan > 0 ? summary.pendapatan : zakatResults.pendapatan,
       icon: Briefcase,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
       title: "Zakat Kripto",
-      amount: zakatResults.kripto,
+      amount: summary.kripto > 0 ? summary.kripto : zakatResults.kripto,
       icon: TrendingUp,
       color: "text-purple-600",
       bg: "bg-purple-50",
     },
     {
       title: "Zakat Harta",
-      amount: zakatResults.harta,
+      amount: summary.harta > 0 ? summary.harta : zakatResults.harta,
       icon: Wallet,
       color: "text-orange-600",
       bg: "bg-orange-50",
     },
     {
       title: "Zakat Logam/Emas",
-      amount: zakatResults.logam,
+      amount: summary.logam > 0 ? summary.logam : zakatResults.logam,
       icon: PieChart,
       color: "text-yellow-600",
       bg: "bg-yellow-50",
@@ -228,7 +238,6 @@ const Dashboard = () => {
 
   return (
     <div className="flex-1 space-y-8 p-4 md:p-6 pt-6 bg-slate-50/30">
-      {/* 1. HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black tracking-tight text-slate-900">
@@ -256,7 +265,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 2. MAIN HIGHLIGHT CARD */}
       <Card className="border-none shadow-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white overflow-hidden relative rounded-[2.5rem]">
         <div className="absolute right-0 bottom-0 p-8 opacity-10 rotate-12 pointer-events-none">
           <Wallet size={160} />
@@ -278,7 +286,7 @@ const Dashboard = () => {
               <div
                 className={`mt-4 flex items-center text-[10px] font-bold w-fit px-4 py-1.5 rounded-full border ${isPaid ? "bg-emerald-400/20 border-emerald-400" : "bg-white/10 border-white/20"}`}
               >
-                {summary.total_keseluruhan > 0
+                {totalKeseluruhan > 0
                   ? isPaid
                     ? "STATUS: PROSES PENGESAHAN"
                     : "STATUS: MENUNGGU PEMBAYARAN"
@@ -286,7 +294,7 @@ const Dashboard = () => {
                 <ArrowUpRight className="ml-2 h-4 w-4" />
               </div>
             </div>
-            {summary.total_keseluruhan > 0 && !isPaid && (
+            {totalKeseluruhan > 0 && !isPaid && (
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="group flex items-center justify-center gap-3 bg-white text-emerald-700 px-8 py-4 rounded-2xl font-black text-sm shadow-xl hover:bg-emerald-50 transition-all active:scale-95"
@@ -298,7 +306,6 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* 3. FOUR STATS CARDS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((item, index) => (
           <Card
@@ -322,7 +329,6 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* 4. MAIN CONTENT GRID */}
       <div className="grid gap-6 lg:grid-cols-7">
         <div className="lg:col-span-4 space-y-6">
           <div className="flex items-center justify-between px-1">
@@ -401,7 +407,6 @@ const Dashboard = () => {
               </TableBody>
             </Table>
           </Card>
-
           <ZakatDistributionChart />
         </div>
 
