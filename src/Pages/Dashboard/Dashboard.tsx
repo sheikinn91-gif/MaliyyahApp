@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,15 +26,32 @@ export default function MaliyyahDashboard() {
   // 2. FIX RALAT 'NEVER' - Beritahu TypeScript ini adalah array objek
   const [history, setHistory] = useState<any[]>([]);
 
+  // 2. LOGIK PENARIKAN DATA AUTOMATIK
+  // Fungsi ini akan "tarik" nilai setiap kali dashboard dibuka
+  useEffect(() => {
+    const savedData = localStorage.getItem("maliyyah_zakat");
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      setTotalZakat(data.total || 0);
+      setZakatPendapatan(data.pendapatan || 0);
+      setZakatKripto(data.kripto || 0);
+      setZakatHarta(data.harta || 0);
+      setZakatEmas(data.emas || 0);
+    }
+  }, []); // Berjalan sekali setiap kali dashboard muncul
+
   // 3. FUNGSI RESET YANG AKAN MEMAKSA SEMUA JADI 0
   const handleResetData = () => {
-    setTotalZakat(0);
-    setZakatPendapatan(0);
-    setZakatKripto(0);
-    setZakatHarta(0);
-    setZakatEmas(0);
-    setHistory([]);
-    console.log("Semua element telah di-reset ke RM 0.00");
+    if (window.confirm("TOTALLY RESET SEMUA DATA?")) {
+      setTotalZakat(0);
+      setZakatPendapatan(0);
+      setZakatKripto(0);
+      setZakatHarta(0);
+      setZakatEmas(0);
+      setHistory([]);
+      localStorage.removeItem("maliyyah_zakat"); // Padam memori kalkulator
+      alert("Reset Berjaya!");
+    }
   };
 
   return (
