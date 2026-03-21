@@ -42,9 +42,26 @@ export default function Dashboard() {
   }, []);
 
   // 2. FUNGSI RESET DATA (Frontend Sahaja)
-  const handleReset = () => {
-    window.location.reload(); // Cara paling cepat untuk reset state semasa
-    toast.success("Data paparan telah direset.");
+  const handleReset = async () => {
+    // 1. Minta pengesahan (Penting!)
+    if (!confirm("Adakah anda pasti mahu memadam semua rekod aktiviti?"))
+      return;
+
+    try {
+      // 2. Panggil API untuk padam data di database
+      const response = await fetch("/api/zakat/reset", { method: "DELETE" });
+
+      if (response.ok) {
+        // 3. Kosongkan state history supaya UI terus bersih
+        setHistory([]);
+
+        // 4. Baru lakukan reload untuk kosongkan semua input lain (Gaji, Emas, dll)
+        window.location.reload();
+        toast.success("Semua rekod telah dipadamkan.");
+      }
+    } catch (error) {
+      toast.error("Gagal memadam data.");
+    }
   };
 
   // 3. FUNGSI DOWNLOAD PDF (Placeholder)
