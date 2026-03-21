@@ -164,7 +164,7 @@ export default function Zakat() {
 
     // 3. NAVIGASI
     setTimeout(() => {
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     }, 1000);
   };
   return (
