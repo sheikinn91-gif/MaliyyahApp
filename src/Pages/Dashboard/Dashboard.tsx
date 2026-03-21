@@ -208,7 +208,9 @@ const Dashboard = () => {
     {
       title: "Zakat Pendapatan",
       amount:
-        summary.pendapatan > 0 ? summary.pendapatan : zakatResults.pendapatan,
+        summary.pendapatan > 0
+          ? summary.pendapatan
+          : zakatResults.pendapatan || 0,
       icon: Briefcase,
       color: "text-blue-600",
       bg: "bg-blue-50",
