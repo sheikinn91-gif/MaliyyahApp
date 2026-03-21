@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export default function MaliyyahDashboard() {
-  // 1. State untuk menyimpan nilai paparan
+  // 1. STATE UNTUK PAPARAN DATA
   const [totalZakat, setTotalZakat] = useState<number>(0);
   const [zakatPendapatan, setZakatPendapatan] = useState<number>(0);
   const [zakatKripto, setZakatKripto] = useState<number>(0);
@@ -24,7 +24,7 @@ export default function MaliyyahDashboard() {
   const [zakatEmas, setZakatEmas] = useState<number>(0);
   const [history, setHistory] = useState<any[]>([]);
 
-  // 2. useEffect untuk menarik data sebaik sahaja masuk ke Dashboard
+  // 2. FUNGSI PENARIK DATA (Magnet)
   useEffect(() => {
     const dataMentah = localStorage.getItem("maliyyah_zakat_data");
 
@@ -32,7 +32,7 @@ export default function MaliyyahDashboard() {
       try {
         const data = JSON.parse(dataMentah);
 
-        // Kemaskini state dengan data dari Kalkulator
+        // Kemaskini state dengan data yang dihantar oleh Kalkulator
         setTotalZakat(data.total || 0);
         setZakatPendapatan(data.pendapatan || 0);
         setZakatKripto(data.kripto || 0);
@@ -47,13 +47,14 @@ export default function MaliyyahDashboard() {
           },
         ]);
       } catch (e) {
-        console.error("Ralat membaca data:", e);
+        console.error("Ralat membaca data dari storage:", e);
       }
     }
   }, []);
 
+  // 3. FUNGSI RESET DATA
   const handleResetData = () => {
-    if (window.confirm("Padam semua data Dashboard?")) {
+    if (window.confirm("Padam semua data paparan di Dashboard?")) {
       localStorage.removeItem("maliyyah_zakat_data");
       setTotalZakat(0);
       setZakatPendapatan(0);
@@ -67,7 +68,7 @@ export default function MaliyyahDashboard() {
   return (
     <div className="w-full min-h-screen bg-[#f4f7f6] p-4 md:p-6 text-slate-800 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Banner Hijau */}
+        {/* BANNER UTAMA */}
         <div className="bg-[#006747] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-2">
@@ -79,7 +80,7 @@ export default function MaliyyahDashboard() {
               </h1>
               <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">
                 Status:{" "}
-                {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}{" "}
+                {totalZakat > 0 ? "Menunggu Pembayaran" : "Tiada Tunggakan"}
                 <ExternalLink size={12} />
               </div>
             </div>
@@ -92,7 +93,7 @@ export default function MaliyyahDashboard() {
           </div>
         </div>
 
-        {/* Grid Kad Zakat */}
+        {/* KAD KATEGORI ZAKAT */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
@@ -140,7 +141,7 @@ export default function MaliyyahDashboard() {
           ))}
         </div>
 
-        {/* Aktiviti & Sidebar */}
+        {/* AKTIVITI TERKINI & SIDEBAR */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center px-2">
@@ -154,6 +155,7 @@ export default function MaliyyahDashboard() {
                 <RotateCcw size={12} /> Reset Data
               </button>
             </div>
+
             <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden min-h-[300px]">
               <table className="w-full text-left">
                 <thead>
@@ -197,7 +199,7 @@ export default function MaliyyahDashboard() {
                         colSpan={3}
                         className="px-6 py-20 text-center text-slate-300 italic text-sm"
                       >
-                        Belum ada rekod.
+                        Tiada rekod tersimpan.
                       </td>
                     </tr>
                   )}
@@ -205,19 +207,65 @@ export default function MaliyyahDashboard() {
               </table>
             </div>
           </div>
+
           <div className="space-y-6">
+            <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
+              <div className="flex items-center gap-2 text-emerald-600 font-bold mb-4">
+                <div className="p-2 bg-emerald-50 rounded-lg">
+                  <Lightbulb size={18} />
+                </div>
+                <h3>Didik Zakat</h3>
+              </div>
+              <p className="text-xs text-slate-500 italic">
+                "Penyucian harta bermula dengan niat yang ikhlas."
+              </p>
+            </Card>
+            {/* KAD MARKET PULSE (BITCOIN & EMAS) */}
             <Card className="rounded-[1.5rem] border-none shadow-sm bg-white p-6">
               <h3 className="text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest">
                 Market Pulse
               </h3>
-              <div className="flex justify-between items-center text-sm font-black">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl italic text-xs">
-                    BTC
+
+              <div className="space-y-6">
+                {/* BITCOIN */}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-orange-50 text-orange-500 rounded-2xl font-black italic text-xs">
+                      BTC
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-800">
+                        Bitcoin
+                      </p>
+                      <p className="text-[10px] text-slate-400 uppercase">
+                        Live Crypto
+                      </p>
+                    </div>
                   </div>
-                  Bitcoin
+                  <div className="text-right font-black text-sm text-slate-800">
+                    RM 278,742.88
+                  </div>
                 </div>
-                <div>RM 278,742.88</div>
+
+                {/* EMAS */}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-yellow-50 text-yellow-600 rounded-2xl font-black italic text-xs">
+                      AU
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-800">
+                        Emas (999)
+                      </p>
+                      <p className="text-[10px] text-slate-400 uppercase">
+                        Harga Semasa/g
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right font-black text-sm text-slate-800">
+                    RM 350.50
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
